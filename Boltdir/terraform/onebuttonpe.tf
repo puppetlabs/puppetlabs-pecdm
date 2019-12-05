@@ -14,6 +14,8 @@ variable "region"             { default = "us-west1" }
 variable "zones"               { default = [ "us-west1-a", "us-west1-b", "us-west1-c" ] }
 # Number of forwarders to deploy, number is actually doubled because it deploys both Linux AND Windows
 variable "compiler_count"    { default = 3 }
+# Number of forwarders to deploy, number is actually doubled because it deploys both Linux AND Windows
+variable "agent_count"       { default = 3 }
 # The image deploy Linux from
 variable "linux_image"        { default = "centos-cloud/centos-7" }
 # Permitted IP subnets, make this more open if required and single IP adresses should be defined as a /32
@@ -52,7 +54,8 @@ resource "google_compute_firewall" "pe_default" {
   allow { protocol = "udp" }
 }
 
-# Create a friendly DNS name for accessing the new PE environment
+# Create a friendly DNS names for accessing the new PE environment
+# and because GCP internal DNS is terrible
 resource "google_dns_record_set" "pe" {
   name = "pe-${var.deployment_id}.${var.dns_domain}."
   type = "A"
@@ -63,7 +66,6 @@ resource "google_dns_record_set" "pe" {
   rrdatas = ["${google_compute_instance.master[0].network_interface[0].access_config[0].nat_ip}"]
 }
 
-# Create a friendly DNS name for accessing the new PE environment
 resource "google_dns_record_set" "compilers" {
   name = "pe-compilers-${var.deployment_id}.${var.dns_domain}."
   type = "A"
@@ -83,7 +85,7 @@ resource "google_compute_instance" "master" {
 
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
-    "VmDnsSetting" = "ZonalPreferred"
+    "VmDnsSetting" = "GlobalOnly"
   }
 
   boot_disk {
@@ -122,7 +124,7 @@ resource "google_compute_instance" "psql" {
 
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
-    "VmDnsSetting" = "ZonalPreferred"
+    "VmDnsSetting" = "GlobalOnly"
   }
 
   boot_disk {
@@ -154,14 +156,53 @@ resource "google_compute_instance" "psql" {
 
 # Instances to run a compilers
 resource "google_compute_instance" "compiler" {
-  name         = "pe-complier-${var.deployment_id}-${count.index}"
+  name         = "pe-compiler-${var.deployment_id}-${count.index}"
   machine_type = "n1-standard-2"
   count        = var.compiler_count
   zone         = element(var.zones, count.index)
 
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
-    "VmDnsSetting" = "ZonalPreferred"
+    "VmDnsSetting" = "GlobalOnly"
+  }
+
+  boot_disk {
+    initialize_params {
+      image = var.linux_image
+      size  = 15
+      type  = "pd-ssd"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.pe.self_link
+    subnetwork = google_compute_subnetwork.pe_west.self_link
+    access_config { }
+  }
+
+  # Using remote-execs on each instance deployemnt to ensure thing are really
+  # really up before doing the next steps, helps with development tasks that
+  # immediately attempt to leverage Bolt
+  provisioner "remote-exec" {
+    connection {
+      host = self.network_interface[0].access_config[0].nat_ip
+      type = "ssh"
+      user = var.user
+    }
+    inline = ["# Connected"]
+  }
+}
+
+# Instances to run as agents
+resource "google_compute_instance" "agent" {
+  name         = "pe-agent-${var.deployment_id}-${count.index}"
+  machine_type = "n1-standard-1"
+  count        = var.agent_count
+  zone         = element(var.zones, count.index)
+
+  metadata = {
+    "sshKeys" = "${var.user}:${file(var.ssh_key)}"
+    "VmDnsSetting" = "GlobalOnly"
   }
 
   boot_disk {
@@ -192,21 +233,21 @@ resource "google_compute_instance" "compiler" {
 }
 
 resource "google_compute_instance_group" "a" {
-  name        = "pe-complier-${var.deployment_id}-zone-a"
+  name        = "pe-compiler-${var.deployment_id}-zone-a"
 
   instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-a"]
   zone = "${var.region}-a"
 }
 
 resource "google_compute_instance_group" "b" {
-  name        = "pe-complier-${var.deployment_id}-zone-b"
+  name        = "pe-compiler-${var.deployment_id}-zone-b"
 
   instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-b"]
   zone = "${var.region}-b"
 }
 
 resource "google_compute_instance_group" "c" {
-  name        = "pe-complier-${var.deployment_id}-zone-c"
+  name        = "pe-compiler-${var.deployment_id}-zone-c"
 
   instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-c"]
   zone = "${var.region}-c"

@@ -14,10 +14,10 @@ plugin_hooks:
 groups:
   - name: pe_xl_nodes
     targets:
-      - pe-complier-0-0.us-west1-a.c.slice-cody.internal
-      - pe-complier-0-1.us-west1-b.c.slice-cody.internal
-      - pe-complier-0-2.us-west1-c.c.slice-cody.internal
-      - pe-master-0-0.us-west1-a.c.slice-cody.internal
-      - pe-master-0-1.us-west1-b.c.slice-cody.internal
-      - pe-psql-0-0.us-west1-a.c.slice-cody.internal
-      - pe-psql-0-1.us-west1-b.c.slice-cody.internal
+      - pe-compiler-0-0.c.slice-cody.internal
+      - pe-compiler-0-1.c.slice-cody.internal
+      - pe-compiler-0-2.c.slice-cody.internal
+      - pe-master-0-0.c.slice-cody.internal
+      - pe-master-0-1.c.slice-cody.internal
+      - pe-psql-0-0.c.slice-cody.internal
+      - pe-psql-0-1.c.slice-cody.internal
