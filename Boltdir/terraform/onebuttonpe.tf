@@ -6,38 +6,40 @@ variable "dns_domain"         { }
 variable "dns_zone"           { }
 # Shared user name across instances
 variable "user"               { }
-# Location on disk of the SSH key ot use for Linux access
+# Location on disk of the SSH key to use for Linux system access
 variable "ssh_key"            { default = "~/.ssh/id_rsa.pub" }
 # GCP region for the deployment
 variable "region"             { default = "us-west1" }
-# GCP zone for the deployment
+# GCP zones for the deployment
 variable "zones"               { default = [ "us-west1-a", "us-west1-b", "us-west1-c" ] }
-# Number of forwarders to deploy, number is actually doubled because it deploys both Linux AND Windows
+# Number of compilers to deploy, will be spread across all defined zones
 variable "compiler_count"    { default = 3 }
-# Number of forwarders to deploy, number is actually doubled because it deploys both Linux AND Windows
+# Number of agents to deploy, will be spread across all defined zones
 variable "agent_count"       { default = 3 }
-# The image deploy Linux from
+# The image deploy Linux with
 variable "linux_image"        { default = "centos-cloud/centos-7" }
-# Permitted IP subnets, make this more open if required and single IP adresses should be defined as a /32
+# Permitted IP subnets, default is internal only, single IP adresses should be defined as /32
 variable "firewall_permitted" { default = [ "10.128.0.0/9" ] }
-# A static ID for the deployment that can be used to group together multiple deployments of the test drive
-variable "deployment_id"      { default = "0" }
 
 provider "google" {
   project = var.project
   region  = var.region
 }
 
+resource "random_id" "deployment" {
+  byte_length = 3
+}
+
 # To contain each PE deployment, a fresh VPC to deploy into
 resource "google_compute_network" "pe" {
-  name = "pe-${var.deployment_id}"
+  name = "pe-${random_id.deployment.hex}"
   auto_create_subnetworks = false
 }
 
 # Manual creation of subnets works better when instances are dependent on their
 # existance, allowing GCP to create them automatically creates a race condition.
 resource "google_compute_subnetwork" "pe_west" {
-  name          = "pe-${var.deployment_id}"
+  name          = "pe-${random_id.deployment.hex}"
   ip_cidr_range = "10.138.0.0/20"
   network       = "${google_compute_network.pe.self_link}"
 }
@@ -45,7 +47,7 @@ resource "google_compute_subnetwork" "pe_west" {
 # Instances should not be accessible by the open internet so a fresh VPC should
 # be restricted to organization allowed subnets
 resource "google_compute_firewall" "pe_default" {
-  name    = "pe-default-${var.deployment_id}"
+  name    = "pe-default-${random_id.deployment.hex}"
   network = "${google_compute_network.pe.self_link}"
   priority = 1000
   source_ranges = var.firewall_permitted
@@ -54,10 +56,10 @@ resource "google_compute_firewall" "pe_default" {
   allow { protocol = "udp" }
 }
 
-# Create a friendly DNS names for accessing the new PE environment
-# and because GCP internal DNS is terrible
+# Create a friendly DNS name for accessing the new PE console external to GCP
+# networking
 resource "google_dns_record_set" "pe" {
-  name = "pe-${var.deployment_id}.${var.dns_domain}."
+  name = "pe-${random_id.deployment.hex}.${var.dns_domain}."
   type = "A"
   ttl  = 1
 
@@ -66,8 +68,10 @@ resource "google_dns_record_set" "pe" {
   rrdatas = ["${google_compute_instance.master[0].network_interface[0].access_config[0].nat_ip}"]
 }
 
+# Create a friendly DNS name for accessing the compiler load balancer's internal
+# IP address
 resource "google_dns_record_set" "compilers" {
-  name = "pe-compilers-${var.deployment_id}.${var.dns_domain}."
+  name = "pe-compilers-${random_id.deployment.hex}.${var.dns_domain}."
   type = "A"
   ttl  = 1
 
@@ -78,7 +82,7 @@ resource "google_dns_record_set" "compilers" {
 
 # Instances to run PE MOM
 resource "google_compute_instance" "master" {
-  name         = "pe-master-${var.deployment_id}-${count.index}"
+  name         = "pe-master-${random_id.deployment.hex}-${count.index}"
   machine_type = "n1-standard-4"
   count        = 2
   zone         = element(var.zones, count.index)
@@ -102,9 +106,9 @@ resource "google_compute_instance" "master" {
     access_config { }
   }
 
-  # Using remote-execs on each instance deployemnt to ensure thing are really
-  # really up before doing the next steps, helps with development tasks that
-  # immediately attempt to leverage Bolt
+  # Using remote-execs on each instance deployemnt to ensure things are really
+  # really up before doing to the next step, helps with Bolt plans that'll
+  # immediately connect then fail
   provisioner "remote-exec" {
     connection {
       host = self.network_interface[0].access_config[0].nat_ip
@@ -117,7 +121,7 @@ resource "google_compute_instance" "master" {
 
 # Instances to run PE PSQL
 resource "google_compute_instance" "psql" {
-  name         = "pe-psql-${var.deployment_id}-${count.index}"
+  name         = "pe-psql-${random_id.deployment.hex}-${count.index}"
   machine_type = "n1-standard-8"
   count        = 2
   zone         = element(var.zones, count.index)
@@ -141,9 +145,9 @@ resource "google_compute_instance" "psql" {
     access_config { }
   }
 
-  # Using remote-execs on each instance deployemnt to ensure thing are really
-  # really up before doing the next steps, helps with development tasks that
-  # immediately attempt to leverage Bolt
+  # Using remote-execs on each instance deployemnt to ensure things are really
+  # really up before doing to the next step, helps with Bolt plans that'll
+  # immediately connect then fail
   provisioner "remote-exec" {
     connection {
       host = self.network_interface[0].access_config[0].nat_ip
@@ -156,7 +160,7 @@ resource "google_compute_instance" "psql" {
 
 # Instances to run a compilers
 resource "google_compute_instance" "compiler" {
-  name         = "pe-compiler-${var.deployment_id}-${count.index}"
+  name         = "pe-compiler-${random_id.deployment.hex}-${count.index}"
   machine_type = "n1-standard-2"
   count        = var.compiler_count
   zone         = element(var.zones, count.index)
@@ -180,9 +184,9 @@ resource "google_compute_instance" "compiler" {
     access_config { }
   }
 
-  # Using remote-execs on each instance deployemnt to ensure thing are really
-  # really up before doing the next steps, helps with development tasks that
-  # immediately attempt to leverage Bolt
+  # Using remote-execs on each instance deployemnt to ensure things are really
+  # really up before doing to the next step, helps with Bolt plans that'll
+  # immediately connect then fail
   provisioner "remote-exec" {
     connection {
       host = self.network_interface[0].access_config[0].nat_ip
@@ -195,7 +199,7 @@ resource "google_compute_instance" "compiler" {
 
 # Instances to run as agents
 resource "google_compute_instance" "agent" {
-  name         = "pe-agent-${var.deployment_id}-${count.index}"
+  name         = "pe-agent-${random_id.deployment.hex}-${count.index}"
   machine_type = "n1-standard-1"
   count        = var.agent_count
   zone         = element(var.zones, count.index)
@@ -232,52 +236,40 @@ resource "google_compute_instance" "agent" {
   }
 }
 
-resource "google_compute_instance_group" "a" {
-  name        = "pe-compiler-${var.deployment_id}-zone-a"
+resource "google_compute_instance_group" "backend" {
+  for_each = toset(var.zones)
+  name  = "pe-compiler-${random_id.deployment.hex}-${each.value}"
 
-  instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-a"]
-  zone = "${var.region}-a"
-}
-
-resource "google_compute_instance_group" "b" {
-  name        = "pe-compiler-${var.deployment_id}-zone-b"
-
-  instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-b"]
-  zone = "${var.region}-b"
-}
-
-resource "google_compute_instance_group" "c" {
-  name        = "pe-compiler-${var.deployment_id}-zone-c"
-
-  instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == "${var.region}-c"]
-  zone = "${var.region}-c"
+  instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == each.value]
+  zone = each.value
 }
 
 resource "google_compute_health_check" "pe_compiler" {
-  name = "pe-compiler-${var.deployment_id}"
+  name = "pe-compiler-${random_id.deployment.hex}"
 
   tcp_health_check { port = "8140" }
 }
 
 resource "google_compute_region_backend_service" "pe_compiler_lb" {
-  name          = "pe-compiler-lb-${var.deployment_id}"
+  name          = "pe-compiler-lb-${random_id.deployment.hex}"
   health_checks = [google_compute_health_check.pe_compiler.self_link]
   region        = var.region
 
-  backend { group = google_compute_instance_group.a.self_link } 
-  backend { group = google_compute_instance_group.b.self_link }
-  backend { group = google_compute_instance_group.c.self_link }
+  dynamic "backend" {
+    for_each = toset(var.zones)
+
+    content { group = google_compute_instance_group.backend[backend.value].self_link }
+  }
 }
 
 resource "google_compute_forwarding_rule" "pe_compiler_lb" {
-  name                  = "pe-compiler-lb-${var.deployment_id}"
+  name                  = "pe-compiler-lb-${random_id.deployment.hex}"
   load_balancing_scheme = "INTERNAL"
   ports                 = ["8140","8142"]
   network               = google_compute_network.pe.self_link
   subnetwork            = google_compute_subnetwork.pe_west.self_link
   backend_service       = google_compute_region_backend_service.pe_compiler_lb.self_link
 }
-
 
 # Convient log message at end of Terraform apply to inform you where your
 # Splunk instance can be accessed.
