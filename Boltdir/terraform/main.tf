@@ -41,14 +41,14 @@ resource "google_compute_network" "pe" {
 resource "google_compute_subnetwork" "pe_west" {
   name          = "pe-${random_id.deployment.hex}"
   ip_cidr_range = "10.138.0.0/20"
-  network       = "${google_compute_network.pe.self_link}"
+  network       = google_compute_network.pe.self_link
 }
 
 # Instances should not be accessible by the open internet so a fresh VPC should
 # be restricted to organization allowed subnets
 resource "google_compute_firewall" "pe_default" {
   name    = "pe-default-${random_id.deployment.hex}"
-  network = "${google_compute_network.pe.self_link}"
+  network = google_compute_network.pe.self_link
   priority = 1000
   source_ranges = var.firewall_permitted
   allow { protocol = "icmp" }
@@ -77,7 +77,7 @@ resource "google_dns_record_set" "compilers" {
 
   managed_zone = var.dns_zone
 
-  rrdatas = ["${google_compute_forwarding_rule.pe_compiler_lb.ip_address}"]
+  rrdatas = ["${module.loadbalancer.lb_ip}"]
 }
 
 # Instances to run PE MOM
@@ -87,6 +87,7 @@ resource "google_compute_instance" "master" {
   count        = 2
   zone         = element(var.zones, count.index)
 
+  # Old style internal DNS easiest until Bolt inventory dynamic
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
     "VmDnsSetting" = "GlobalOnly"
@@ -126,6 +127,7 @@ resource "google_compute_instance" "psql" {
   count        = 2
   zone         = element(var.zones, count.index)
 
+  # Old style internal DNS easiest until Bolt inventory dynamic
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
     "VmDnsSetting" = "GlobalOnly"
@@ -165,6 +167,7 @@ resource "google_compute_instance" "compiler" {
   count        = var.compiler_count
   zone         = element(var.zones, count.index)
 
+  # Old style internal DNS easiest until Bolt inventory dynamic
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
     "VmDnsSetting" = "GlobalOnly"
@@ -204,6 +207,7 @@ resource "google_compute_instance" "agent" {
   count        = var.agent_count
   zone         = element(var.zones, count.index)
 
+  # Old style internal DNS easiest until Bolt inventory dynamic
   metadata = {
     "sshKeys" = "${var.user}:${file(var.ssh_key)}"
     "VmDnsSetting" = "GlobalOnly"
@@ -236,39 +240,15 @@ resource "google_compute_instance" "agent" {
   }
 }
 
-resource "google_compute_instance_group" "backend" {
-  for_each = toset(var.zones)
-  name  = "pe-compiler-${random_id.deployment.hex}-${each.value}"
-
-  instances = [for i in google_compute_instance.compiler[*] : i.self_link if i.zone == each.value]
-  zone = each.value
-}
-
-resource "google_compute_health_check" "pe_compiler" {
-  name = "pe-compiler-${random_id.deployment.hex}"
-
-  tcp_health_check { port = "8140" }
-}
-
-resource "google_compute_region_backend_service" "pe_compiler_lb" {
-  name          = "pe-compiler-lb-${random_id.deployment.hex}"
-  health_checks = [google_compute_health_check.pe_compiler.self_link]
-  region        = var.region
-
-  dynamic "backend" {
-    for_each = toset(var.zones)
-
-    content { group = google_compute_instance_group.backend[backend.value].self_link }
-  }
-}
-
-resource "google_compute_forwarding_rule" "pe_compiler_lb" {
-  name                  = "pe-compiler-lb-${random_id.deployment.hex}"
-  load_balancing_scheme = "INTERNAL"
-  ports                 = ["8140","8142"]
-  network               = google_compute_network.pe.self_link
-  subnetwork            = google_compute_subnetwork.pe_west.self_link
-  backend_service       = google_compute_region_backend_service.pe_compiler_lb.self_link
+module "loadbalancer" {
+  source     = "./modules/loadbalancer"
+  id         = random_id.deployment.hex
+  ports      = ["8140", "8142"]
+  network    = google_compute_network.pe.self_link
+  subnetwork = google_compute_subnetwork.pe_west.self_link
+  region     = var.region
+  zones      = var.zones 
+  instances  = google_compute_instance.compiler[*]
 }
 
 # Convient log message at end of Terraform apply to inform you where your
