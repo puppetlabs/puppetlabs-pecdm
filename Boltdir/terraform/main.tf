@@ -1,59 +1,54 @@
 # GCP Project ID
-variable "project"            { }
+variable "project"        { }
 # Domain name assigned to DNS zone
-variable "dns_domain"         { }
+variable "dns_domain"     { }
 # Name of of the actual zone in GCP CloudDNS
-variable "dns_zone"           { }
+variable "dns_zone"       { }
 # Shared user name across instances
-variable "user"               { }
+variable "user"           { }
 # Location on disk of the SSH key to use for Linux system access
-variable "ssh_key"            { default = "~/.ssh/id_rsa.pub" }
+variable "ssh_key"        { default = "~/.ssh/id_rsa.pub" }
 # GCP region for the deployment
-variable "region"             { default = "us-west1" }
+variable "region"         { default = "us-west1" }
 # GCP zones for the deployment
-variable "zones"               { default = [ "us-west1-a", "us-west1-b", "us-west1-c" ] }
+variable "zones"          { default = [ "us-west1-a", "us-west1-b", "us-west1-c" ] }
 # Number of compilers to deploy, will be spread across all defined zones
-variable "compiler_count"    { default = 3 }
+variable "compiler_count" { default = 3 }
 # Number of agents to deploy, will be spread across all defined zones
-variable "agent_count"       { default = 3 }
+variable "agent_count"    { default = 3 }
 # The image deploy Linux with
-variable "linux_image"        { default = "centos-cloud/centos-7" }
+variable "linux_image"    { default = "centos-cloud/centos-7" }
 # Permitted IP subnets, default is internal only, single IP adresses should be defined as /32
-variable "firewall_permitted" { default = [ "10.128.0.0/9" ] }
+variable "firewall_allow" { default = [ "10.128.0.0/9" ] }
 
 provider "google" {
   project = var.project
   region  = var.region
 }
 
+# It is intended that multiple deployments can be launched easily without
+# name colliding
 resource "random_id" "deployment" {
   byte_length = 3
 }
 
-# To contain each PE deployment, a fresh VPC to deploy into
-resource "google_compute_network" "pe" {
-  name = "pe-${random_id.deployment.hex}"
-  auto_create_subnetworks = false
+# Contain all the networking configuration in a module for readability
+module "networking" {
+  source = "./modules/networking"
+  id     = random_id.deployment.hex
+  allow  = var.firewall_allow
 }
 
-# Manual creation of subnets works better when instances are dependent on their
-# existance, allowing GCP to create them automatically creates a race condition.
-resource "google_compute_subnetwork" "pe_west" {
-  name          = "pe-${random_id.deployment.hex}"
-  ip_cidr_range = "10.138.0.0/20"
-  network       = google_compute_network.pe.self_link
-}
-
-# Instances should not be accessible by the open internet so a fresh VPC should
-# be restricted to organization allowed subnets
-resource "google_compute_firewall" "pe_default" {
-  name    = "pe-default-${random_id.deployment.hex}"
-  network = google_compute_network.pe.self_link
-  priority = 1000
-  source_ranges = var.firewall_permitted
-  allow { protocol = "icmp" }
-  allow { protocol = "tcp" }
-  allow { protocol = "udp" }
+# Contain all the loadbalancer configuration in a module for readability
+module "loadbalancer" {
+  source     = "./modules/loadbalancer"
+  id         = random_id.deployment.hex
+  ports      = ["8140", "8142"]
+  network    = module.networking.network_link
+  subnetwork = module.networking.subnetwork_link
+  region     = var.region
+  zones      = var.zones 
+  instances  = google_compute_instance.compiler[*]
 }
 
 # Create a friendly DNS name for accessing the new PE console external to GCP
@@ -102,8 +97,8 @@ resource "google_compute_instance" "master" {
   }
 
   network_interface {
-    network = google_compute_network.pe.self_link
-    subnetwork = google_compute_subnetwork.pe_west.self_link
+    network = module.networking.network_link
+    subnetwork = module.networking.subnetwork_link
     access_config { }
   }
 
@@ -142,8 +137,8 @@ resource "google_compute_instance" "psql" {
   }
 
   network_interface {
-    network = google_compute_network.pe.self_link
-    subnetwork = google_compute_subnetwork.pe_west.self_link
+    network = module.networking.network_link
+    subnetwork = module.networking.subnetwork_link
     access_config { }
   }
 
@@ -182,8 +177,8 @@ resource "google_compute_instance" "compiler" {
   }
 
   network_interface {
-    network = google_compute_network.pe.self_link
-    subnetwork = google_compute_subnetwork.pe_west.self_link
+    network = module.networking.network_link
+    subnetwork = module.networking.subnetwork_link
     access_config { }
   }
 
@@ -222,8 +217,8 @@ resource "google_compute_instance" "agent" {
   }
 
   network_interface {
-    network = google_compute_network.pe.self_link
-    subnetwork = google_compute_subnetwork.pe_west.self_link
+    network = module.networking.network_link
+    subnetwork = module.networking.subnetwork_link
     access_config { }
   }
 
@@ -240,20 +235,23 @@ resource "google_compute_instance" "agent" {
   }
 }
 
-module "loadbalancer" {
-  source     = "./modules/loadbalancer"
-  id         = random_id.deployment.hex
-  ports      = ["8140", "8142"]
-  network    = google_compute_network.pe.self_link
-  subnetwork = google_compute_subnetwork.pe_west.self_link
-  region     = var.region
-  zones      = var.zones 
-  instances  = google_compute_instance.compiler[*]
-}
-
 # Convient log message at end of Terraform apply to inform you where your
 # Splunk instance can be accessed.
-output "fqdn" {
+output "console" {
   value       = google_dns_record_set.pe.name
   description = "The FQDN of a new Pupept Enterprise console"
+}
+output "pool" {
+  value       = google_dns_record_set.compilers.name
+  description = "The FQDN of a new Pupept Enterprise compiler pool"
+}
+output "infrastructure" {
+  value = { 
+    masters   : [for i in google_compute_instance.master[*]   : [ "${i.name}.c.${i.project}.internal", i.network_interface[0].access_config[0].nat_ip] ], 
+    psql      : [for i in google_compute_instance.psql[*]     : [ "${i.name}.c.${i.project}.internal", i.network_interface[0].access_config[0].nat_ip] ], 
+    compilers : [for i in google_compute_instance.compiler[*] : [ "${i.name}.c.${i.project}.internal", i.network_interface[0].access_config[0].nat_ip] ] 
+  }
+}
+output "agents" {
+  value = [for i in google_compute_instance.agent[*] : [ "${i.name}.c.${i.project}.internal", i.network_interface[0].access_config[0].nat_ip] ]
 }

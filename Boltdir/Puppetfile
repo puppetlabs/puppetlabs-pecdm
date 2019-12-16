@@ -8,6 +8,6 @@ mod 'puppetlabs-bolt_shim', '0.3.0'
 
 
 # Modules from Git
-mod 'puppetlabs-pe_xl',
-    git: 'https://github.com/puppetlabs/puppetlabs-pe_xl.git',
+mod 'puppetlabs-peadm',
+    git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
     ref: 'master'

@@ -7,17 +7,11 @@ config:
     host-key-check: false
     run-as: root
     tty: true
-plugin_hooks:
-  puppet_library:
-    plugin: task
-    task: puppet_agent::install
 groups:
-  - name: pe_xl_nodes
-    targets:
-      - pe-compiler-0-0.c.slice-cody.internal
-      - pe-compiler-0-1.c.slice-cody.internal
-      - pe-compiler-0-2.c.slice-cody.internal
-      - pe-master-0-0.c.slice-cody.internal
-      - pe-master-0-1.c.slice-cody.internal
-      - pe-psql-0-0.c.slice-cody.internal
-      - pe-psql-0-1.c.slice-cody.internal
+  - name: local
+    targets: localhost
+    config:
+      transport: local
+  - name: pe_adm_nodes
+    targets: []
+
