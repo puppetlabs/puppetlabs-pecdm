@@ -1,5 +1,5 @@
 Boltdir/modules
-Boltdir/terraform/.terraform
-Boltdir/terraform/terraform.tfstate*
+Boltdir/ext/terraform/.terraform
+Boltdir/ext/terraform/terraform.tfstate*
 Boltdir/.resource_types
 Boltdir/.rerun.json

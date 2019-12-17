@@ -3,7 +3,7 @@ plan onebuttonpe(
   String     $version          = '2019.2.2',
   String     $console_password = 'puppetlabs',
   String     $gcp_project,
-  String     $ssh_user,
+  String     $ssh_user         = get_targets('localhost')[0].config['ssh']['user'],
   String     $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String     $cloud_region     = 'us-west1',
   Array      $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
@@ -12,6 +12,15 @@ plan onebuttonpe(
   Array      $firewall_allow   = ['10.128.0.0/9']
 ) {
 
+  # Mapping all the plan parameters to their corresponding Terraform vars,
+  # choosing to maintain a mirrored list so I can leverage the flexibility
+  # of Puppet expressions, typing, and documentation
+  #
+  # Converting Array typed parameters to Strings to prevent HEREDOC from
+  # strippng quotes and ensuring the quotes used are " instead of ', which are
+  # both requied to exist in the tfvars file. Attempted to use a type
+  # converstion formatter instead of regsubst() but couldn't get it to work and
+  # docs are sparse on how it's suppose to work
   $tfvars = @("TFVARS")
     project        = "${gcp_project}"
     user           = "${ssh_user}"
@@ -23,15 +32,25 @@ plan onebuttonpe(
     firewall_allow = ${String($firewall_allow).regsubst('\'', '"', 'G')}
     |-TFVARS
 
+  # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
+  # shell escaping issue I couldn't pin down in a reasonable amount of time
+  #
+  # Couldn't find a known solution for generating a truly random string so
+  # copied an exisitng function from stdlib and stripped the deterministic
+  # behavior out of it
   $tfvars_file = "/tmp/tfvars.${rand_string(8)}"
 
+  # Re-using convienent task from puppetlabs/peadm
   run_task('peadm::mkdir_p_file', localhost,
     path    => $tfvars_file,
     content => $tfvars
   )
 
+  # Stands up our cloud infrastructure that we'll install PE onto, returning a
+  # specific set of data via TF outputs that if replicated will make this plan
+  # easily adaptible for use with multiple cloud providers
   $apply = run_plan('terraform::apply',
-    dir           => 'terraform',
+    dir           => 'ext/terraform',
     return_output => true,
     var_file      => $tfvars_file
   )
@@ -46,6 +65,7 @@ plan onebuttonpe(
     Target.new({'name' => $s[0], 'uri' => $s[1]}).add_to_group('pe_adm_nodes')
   } }
 
+  # Once all the infrastructure data has been collected, peadm takes over
   run_plan('peadm::provision', {
       'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
       'puppetdb_database_host'         => $apply['infrastructure']['value']['psql'][0][0],
@@ -59,5 +79,6 @@ plan onebuttonpe(
     }
   )
 
+  # Clean up the tfvars file we wrote ealier now that we are done with it
   run_command("rm ${tfvars_file}", localhost)
 }
