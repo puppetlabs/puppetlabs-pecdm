@@ -9,5 +9,5 @@ mod 'puppetlabs-bolt_shim', '0.3.0'
 
 # Modules from Git
 mod 'puppetlabs-peadm',
-    git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'master'
+    git: 'https://github.com/ody/puppetlabs-peadm.git',
+    ref: 'full_automated_gcp_deploy'
