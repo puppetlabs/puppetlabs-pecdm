@@ -2,11 +2,6 @@
 version: 2
 config:
   transport: ssh
-  ssh:
-    user: cody
-    host-key-check: false
-    run-as: root
-    tty: true
 groups:
   - name: local
     targets: localhost

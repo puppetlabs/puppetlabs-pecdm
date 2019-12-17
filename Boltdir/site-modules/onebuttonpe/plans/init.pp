@@ -3,7 +3,7 @@ plan onebuttonpe(
   String     $version          = '2019.2.2',
   String     $console_password = 'puppetlabs',
   String     $gcp_project,
-  String     $ssh_user         = get_targets('localhost')[0].config['ssh']['user'],
+  String     $ssh_user,
   String     $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String     $cloud_region     = 'us-west1',
   Array      $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
@@ -15,8 +15,7 @@ plan onebuttonpe(
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
   # of Puppet expressions, typing, and documentation
-  #
-  # Converting Array typed parameters to Strings to prevent HEREDOC from
+  # # Converting Array typed parameters to Strings to prevent HEREDOC from
   # strippng quotes and ensuring the quotes used are " instead of ', which are
   # both requied to exist in the tfvars file. Attempted to use a type
   # converstion formatter instead of regsubst() but couldn't get it to work and
@@ -35,25 +34,18 @@ plan onebuttonpe(
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time
   #
-  # Couldn't find a known solution for generating a truly random string so
-  # copied an exisitng function from stdlib and stripped the deterministic
-  # behavior out of it
-  $tfvars_file = "/tmp/tfvars.${rand_string(8)}"
-
-  # Re-using convienent task from puppetlabs/peadm
-  run_task('peadm::mkdir_p_file', localhost,
-    path    => $tfvars_file,
-    content => $tfvars
-  )
-
-  # Stands up our cloud infrastructure that we'll install PE onto, returning a
-  # specific set of data via TF outputs that if replicated will make this plan
-  # easily adaptible for use with multiple cloud providers
-  $apply = run_plan('terraform::apply',
-    dir           => 'ext/terraform',
-    return_output => true,
-    var_file      => $tfvars_file
-  )
+  # with_tempfile_containing() custom function suggestion by Cas is brilliant
+  # for this, works perfectly
+  $apply = with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
+    # Stands up our cloud infrastructure that we'll install PE onto, returning a
+    # specific set of data via TF outputs that if replicated will make this plan
+    # easily adaptible for use with multiple cloud providers
+    run_plan('terraform::apply',
+      dir           => 'ext/terraform',
+      return_output => true,
+      var_file      => $tfvars_file
+    )
+  }
 
   # Intentionally not using Bolt inventory plugin for Terraform to enable the
   # dynamic sourcing of node names by abstracting the differences inherint in
@@ -62,8 +54,19 @@ plan onebuttonpe(
   # inventory node name from multiple properties of the resource, a feature not
   # available from the current inventory plugin.
   $apply['infrastructure']['value'].each |$k,$v| { $v.each |$s| {
-    Target.new({'name' => $s[0], 'uri' => $s[1]}).add_to_group('pe_adm_nodes')
-  } }
+    Target.new({
+      'name'   => $s[0],
+      'uri'    => $s[1],
+      'config' => {
+        'ssh' => {
+          'user'           => $ssh_user,
+          'host-key-check' => false,
+          'run-as'         => 'root',
+          'tty'            => true
+        }
+      }
+    }).add_to_group('pe_adm_nodes')
+  }}
 
   # Once all the infrastructure data has been collected, peadm takes over
   run_plan('peadm::provision', {
@@ -78,7 +81,4 @@ plan onebuttonpe(
       'version'                        => $version
     }
   )
-
-  # Clean up the tfvars file we wrote ealier now that we are done with it
-  run_command("rm ${tfvars_file}", localhost)
 }
