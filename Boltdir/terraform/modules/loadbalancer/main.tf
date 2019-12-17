@@ -34,6 +34,7 @@ resource "google_compute_region_backend_service" "pe_compiler_lb" {
 
 resource "google_compute_forwarding_rule" "pe_compiler_lb" {
   name                  = "pe-compiler-lb-${var.id}"
+  service_label         = "puppet"
   load_balancing_scheme = "INTERNAL"
   ports                 = var.ports
   network               = var.network
