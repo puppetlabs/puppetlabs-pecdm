@@ -1,5 +1,5 @@
 require 'tempfile'
-Puppet::Functions.create_function(:with_tempfile_containing) do
+Puppet::Functions.create_function(:'autope::with_tempfile_containing') do
   dispatch :with_tempfile_containing do
     param 'String', :name
     param 'String', :contents

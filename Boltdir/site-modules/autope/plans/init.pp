@@ -1,4 +1,4 @@
-plan onebuttonpe(
+plan autope(
   TargetSpec $targets          = get_targets('pe_adm_nodes'),
   String     $version          = '2019.2.2',
   String     $console_password = 'puppetlabs',
@@ -36,7 +36,7 @@ plan onebuttonpe(
   #
   # with_tempfile_containing() custom function suggestion by Cas is brilliant
   # for this, works perfectly
-  $apply = with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
+  $apply = autope::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
