@@ -29,3 +29,5 @@
 /Boltdir/ext/terraform/.terraform
 /Boltdir/ext/terraform/terraform*
 /Boltdir/modules/
+/Boltdir/params.json
+Boltdir/.resource_types

@@ -41,14 +41,14 @@ module "loadbalancer" {
   network    = module.networking.network_link
   subnetwork = module.networking.subnetwork_link
   region     = var.region
-  zones      = var.zones 
+  zones      = var.zones
   instances  = google_compute_instance.compiler[*]
 }
 
 # Instances to run PE MOM
 resource "google_compute_instance" "master" {
   name         = "pe-master-${random_id.deployment.hex}-${count.index}"
-  machine_type = "n1-standard-4"
+  machine_type = "e2-standard-4"
   count        = 2
   zone         = element(var.zones, count.index)
 
@@ -88,7 +88,7 @@ resource "google_compute_instance" "master" {
 # Instances to run PE PSQL
 resource "google_compute_instance" "psql" {
   name         = "pe-psql-${random_id.deployment.hex}-${count.index}"
-  machine_type = "n1-standard-8"
+  machine_type = "e2-standard-8"
   count        = 2
   zone         = element(var.zones, count.index)
 
@@ -128,7 +128,7 @@ resource "google_compute_instance" "psql" {
 # Instances to run a compilers
 resource "google_compute_instance" "compiler" {
   name         = "pe-compiler-${random_id.deployment.hex}-${count.index}"
-  machine_type = "n1-standard-2"
+  machine_type = "e2-standard-2"
   count        = var.compiler_count
   zone         = element(var.zones, count.index)
 
