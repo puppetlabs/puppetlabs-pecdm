@@ -12,6 +12,10 @@ plan autope(
   Array      $firewall_allow   = ['10.128.0.0/9']
 ) {
 
+  # Ensure the Terraform project directory has been initialized ahead of
+  # attempting an apply
+  run_task('terraform::initialize', 'localhost', dir => 'ext/terraform')
+
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
   # of Puppet expressions, typing, and documentation
