@@ -21,11 +21,10 @@
 /vendor/
 /convert_report.txt
 /update_report.txt
+/src/
 .DS_Store
 .project
 .envrc
-/inventory.yaml
-/.terraform
 /Boltdir/ext/terraform/.terraform
 /Boltdir/ext/terraform/terraform*
 /Boltdir/modules/
