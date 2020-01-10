@@ -11,3 +11,6 @@ mod 'puppetlabs-bolt_shim', '0.3.0'
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
     ref: 'master'
+mod 'puppetlabs-terraform',
+    git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
+    ref: 'master'

@@ -1,6 +1,6 @@
 # autope
 
-Auto PE, a Bolt driven fusion of (puppetlabs/peadm)[https://github.com/puppetlabs/puppetlabs-peadm] and Terraform.
+Automatic PE, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and Terraform.
 
 #### Table of Contents
 
@@ -15,71 +15,58 @@ Auto PE, a Bolt driven fusion of (puppetlabs/peadm)[https://github.com/puppetlab
 
 ## Description
 
-Briefly tell users why they might want to use your module. Explain what your module does and what kind of problems users can solve with it.
-
-This should be a fairly short description helps the user decide if your module is what they want.
+This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure deployment and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and some [Terraform manifests](Boltdir/ext/terraform) for GCP to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the XL architecture, including fail over replica.
 
 ## Setup
 
-### What autope affects **OPTIONAL**
+### What autope affects
 
-If it's obvious what your module touches, you can skip this section. For example, folks can probably figure out that your mysql_instance module affects their MySQL instances.
+Types of things you'll be paying your cloud provider for
 
-If there's more that they should know about, though, this is the place to mention:
+* Instances of various sizes
+* Load balancers
+* Networks
 
-* Files, packages, services, or operations that the module will alter, impact, or execute.
-* Dependencies that your module automatically installs.
-* Warnings or other important notices.
+### Setup Requirements
 
-### Setup Requirements **OPTIONAL**
-
-If your module requires anything extra before setting up (pluginsync enabled, another module, etc.), mention it here.
-
-If your most recent release breaks compatibility or requires particular steps for upgrading, you might want to include an additional "Upgrading" section here.
+* [GCP Cloud SDK Intalled](https://cloud.google.com/sdk/docs/quickstarts)
+* [GCP Application Default Credentials](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/)
+* [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
+* [Git Installed](https://git-scm.com/downloads)
+* [Terraform Installed](https://www.terraform.io/downloads.html)
 
 ### Beginning with autope
 
-The very basic steps needed for a user to get the module up and running. This can include setup steps, if necessary, or it can be an example of the most basic use of the module.
+1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-autope.git && cd puppetlabs-autope/Boltdir`
+2. Install module dependencies: `bolt puppetfile install`
+3. Run plan: `bolt plan run autope gcp_project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
+4. Wait. This is best executed from a GCP bastion host or alternatively, a fast connection with strong upload bandwidth
 
 ## Usage
 
-Include usage examples for common use cases in the **Usage** section. Show your users how to use your module to solve problems, and be sure to include code examples. Include three to five examples of the most important or common tasks a user can accomplish with your module. Show users how to accomplish more complex tasks that involve different types, classes, and functions working in tandem.
+### Example: params.json
 
-## Reference
-
-This section is deprecated. Instead, add reference information to your code as Puppet Strings comments, and then use Strings to generate a REFERENCE.md in your module. For details on how to add code comments and generate documentation with Strings, see the Puppet Strings [documentation](https://puppet.com/docs/puppet/latest/puppet_strings.html) and [style guide](https://puppet.com/docs/puppet/latest/puppet_strings_style.html)
-
-If you aren't ready to use Strings yet, manually create a REFERENCE.md in the root of your module directory and list out each of your module's classes, defined types, facts, functions, Puppet tasks, task plans, and resource types and providers, along with the parameters for each.
-
-For each element (class, defined type, function, and so on), list:
-
-  * The data type, if applicable.
-  * A description of what the element does.
-  * Valid values, if the data type doesn't make it obvious.
-  * Default value, if any.
-
-For example:
+The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The default value for **firewall_allow** is the internal network, if you pass a value other than `0.0.0.0/0` then make sure you include that IP block (`10.128.0.0/9`) or your instances will not be able to communicate as expected. Single IP addresses must be passed as a `/32`.
 
 ```
-### `pet::cat`
+{
+    "gcp_project"    : "example",
+    "ssh_user"       : "john.doe",
+    "version"        : "2019.0.4",
+    "firewall_allow" : [ "10.128.0.0/9", "71.236.165.233/32",
+                         "131.252.0.0/16", 140.211.0.0/16 ]
 
-#### Parameters
-
-##### `meow`
-
-Enables vocalization in your cat. Valid options: 'string'.
-
-Default: 'medium-loud'.
+}
 ```
+
+How to execute plan with **params.json**: `bolt plan run autope --params @params.json`
+
+### Example: destroy stack
+
+The only option still required when destroying what was built is **gcp_project**
+
+`bolt plan run autope::destroy gcp_project=example`
 
 ## Limitations
 
-In the Limitations section, list any incompatibilities, known issues, or other warnings.
-
-## Development
-
-In the Development section, tell other users the ground rules for contributing to your project and how they should submit their work.
-
-## Release Notes/Contributors/Etc. **Optional**
-
-If you aren't using changelog, put your release notes here (though you should consider using changelog). You can also add any additional sections you feel are necessary or important to include here. Please use the `## ` header.
+Only supports what peadm supports, in addition only GCP, for now...
