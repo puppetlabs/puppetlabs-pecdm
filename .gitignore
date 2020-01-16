@@ -25,8 +25,7 @@
 .DS_Store
 .project
 .envrc
-/Boltdir/ext/terraform/.terraform
-/Boltdir/ext/terraform/terraform*
+/Boltdir/ext/
 /Boltdir/modules/
 /Boltdir/params.json
 Boltdir/.resource_types

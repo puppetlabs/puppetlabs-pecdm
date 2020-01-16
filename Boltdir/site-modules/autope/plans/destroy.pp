@@ -42,7 +42,7 @@ plan autope::destroy(
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
     run_plan('terraform::destroy',
-      dir           => 'ext/terraform',
+      dir           => 'ext/terraform/pe_arch',
       var_file      => $tfvars_file
     )
   }

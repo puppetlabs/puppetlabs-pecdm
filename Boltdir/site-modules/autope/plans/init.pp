@@ -14,7 +14,7 @@ plan autope(
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
-  run_task('terraform::initialize', 'localhost', dir => 'ext/terraform')
+  run_task('terraform::initialize', 'localhost', dir => 'ext/terraform/pe_arch')
 
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
@@ -45,7 +45,7 @@ plan autope(
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
     run_plan('terraform::apply',
-      dir           => 'ext/terraform',
+      dir           => 'ext/terraform/pe_arch',
       return_output => true,
       var_file      => $tfvars_file
     )

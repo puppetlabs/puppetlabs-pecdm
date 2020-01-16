@@ -6,11 +6,16 @@ mod 'WhatsARanjit-node_manager', '0.7.2'
 mod 'puppetlabs-apply_helpers', '0.1.0'
 mod 'puppetlabs-bolt_shim', '0.3.0'
 
-
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
     ref: 'master'
 mod 'puppetlabs-terraform',
-    git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
-    ref: 'master'
+    git: 'https://github.com/ody/puppetlabs-terraform.git',
+    ref: 'init_task'
+
+# External non-Puppet content
+mod 'terraform-pe_arch',
+    git:          'https://github.com/puppetlabs/terraform-pe_arch.git',
+    ref:          'master',
+    install_path: 'ext/terraform'
