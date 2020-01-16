@@ -1,20 +1,21 @@
 plan autope(
-  TargetSpec $targets          = get_targets('pe_adm_nodes'),
-  String     $version          = '2019.2.2',
-  String     $console_password = 'puppetlabs',
-  String     $gcp_project,
-  String     $ssh_user,
-  String     $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
-  String     $cloud_region     = 'us-west1',
-  Array      $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
-  Integer    $compiler_count   = 3,
-  String     $instance_image   = 'centos-cloud/centos-7',
-  Array      $firewall_allow   = ['10.128.0.0/9']
+  TargetSpec              $targets          = get_targets('pe_adm_nodes'),
+  String                  $version          = '2019.2.2',
+  String                  $console_password = 'puppetlabs',
+  String                  $gcp_project,
+  String                  $ssh_user,
+  String                  $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
+  String                  $cloud_region     = 'us-west1',
+  Array                   $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
+  Integer                 $compiler_count   = 3,
+  String                  $instance_image   = 'centos-cloud/centos-7',
+  Array                   $firewall_allow   = ['10.128.0.0/9'],
+  Enum['xlarge', 'large'] $architecture     = 'xlarge'
 ) {
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
-  run_task('terraform::initialize', 'localhost', dir => 'ext/terraform/pe_arch')
+  run_task('terraform::initialize', 'localhost', dir => "ext/terraform/pe_arch/${architecture}")
 
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
@@ -45,7 +46,7 @@ plan autope(
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
     run_plan('terraform::apply',
-      dir           => 'ext/terraform/pe_arch',
+      dir           => "ext/terraform/pe_arch/${architecture}",
       return_output => true,
       var_file      => $tfvars_file
     )
@@ -72,17 +73,33 @@ plan autope(
     }).add_to_group('pe_adm_nodes')
   }}
 
-  # Once all the infrastructure data has been collected, peadm takes over
-  run_plan('peadm::provision', {
-      'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
-      'puppetdb_database_host'         => $apply['infrastructure']['value']['psql'][0][0],
-      'master_replica_host'            => $apply['infrastructure']['value']['masters'][1][0],
-      'puppetdb_database_replica_host' => $apply['infrastructure']['value']['psql'][1][0],
-      'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
-      'console_password'               => $console_password,
-      'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-      'compiler_pool_address'          => $apply['pool']['value'],
-      'version'                        => $version
+  case $architecture {
+    'xlarge': {
+      $params = {
+        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
+        'puppetdb_database_host'         => $apply['infrastructure']['value']['psql'][0][0],
+        'master_replica_host'            => $apply['infrastructure']['value']['masters'][1][0],
+        'puppetdb_database_replica_host' => $apply['infrastructure']['value']['psql'][1][0],
+        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
+        'version'                        => $version
+      }
     }
-  )
+    'large': {
+      $params = {
+        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
+        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
+        'version'                        => $version
+      }
+    }
+    default: { fail('Something went horribly wrong') }
+  }
+
+  # Once all the infrastructure data has been collected, peadm takes over
+  run_plan('peadm::provision', $params)
 }

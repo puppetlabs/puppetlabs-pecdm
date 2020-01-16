@@ -1,15 +1,16 @@
 plan autope::destroy(
-  TargetSpec $targets          = get_targets('pe_adm_nodes'),
-  String     $version          = '2019.2.2',
-  String     $console_password = 'puppetlabs',
-  String     $gcp_project,
-  String     $ssh_user         = 'oppenheimer',
-  String     $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
-  String     $cloud_region     = 'us-west1',
-  Array      $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
-  Integer    $compiler_count   = 3,
-  String     $instance_image   = 'centos-cloud/centos-7',
-  Array      $firewall_allow   = ['10.128.0.0/9']
+  TargetSpec              $targets          = get_targets('pe_adm_nodes'),
+  String                  $version          = '2019.2.2',
+  String                  $console_password = 'puppetlabs',
+  String                  $gcp_project,
+  String                  $ssh_user         = 'oppenheimer',
+  String                  $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
+  String                  $cloud_region     = 'us-west1',
+  Array                   $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
+  Integer                 $compiler_count   = 3,
+  String                  $instance_image   = 'centos-cloud/centos-7',
+  Array                   $firewall_allow   = ['10.128.0.0/9'],
+  Enum['xlarge', 'large'] $architecture     = 'xlarge'
 ) {
 
   # Mapping all the plan parameters to their corresponding Terraform vars,
@@ -42,7 +43,7 @@ plan autope::destroy(
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
     run_plan('terraform::destroy',
-      dir           => 'ext/terraform/pe_arch',
+      dir           => "ext/terraform/pe_arch/${architecture}",
       var_file      => $tfvars_file
     )
   }
