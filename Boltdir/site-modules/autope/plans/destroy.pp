@@ -3,7 +3,7 @@ plan autope::destroy(
   String     $version          = '2019.2.2',
   String     $console_password = 'puppetlabs',
   String     $gcp_project,
-  String     $ssh_user,
+  String     $ssh_user         = 'oppenheimer',
   String     $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String     $cloud_region     = 'us-west1',
   Array      $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
