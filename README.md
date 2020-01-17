@@ -15,7 +15,7 @@ Automatic PE, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/pupp
 
 ## Description
 
-This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure deployment and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and some [Terraform manifests](Boltdir/ext/terraform) for GCP to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the XL architecture, including fail over replica.
+This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure deployment and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and some [Terraform manifests](https://github.com/puppetlabs/terraform-pe_arch) for GCP to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Large or Extra Large architecture w/ fail over replica (default).
 
 ## Setup
 
@@ -61,11 +61,19 @@ The command line will likely serve most uses of **autope** but if you wish to pa
 
 How to execute plan with **params.json**: `bolt plan run autope --params @params.json`
 
+### Example: deploy large architecture
+
+This can also be used to deploy PE's large architecture without a fail over replica
+
+`bolt plan run autope gcp_project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]' architecture=large`
+
 ### Example: destroy stack
 
-The only option still required when destroying what was built is **gcp_project**
+The number of options required are reduced when destroying a stack
 
-`bolt plan run autope::destroy gcp_project=example`
+**Extra Large**: `bolt plan run autope::destroy gcp_project=example`
+
+**Large**: `bolt plan run autope::destroy gcp_project=example architecture=large`
 
 ## Limitations
 
