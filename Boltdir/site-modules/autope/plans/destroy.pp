@@ -10,8 +10,11 @@ plan autope::destroy(
   Integer                 $compiler_count   = 3,
   String                  $instance_image   = 'centos-cloud/centos-7',
   Array                   $firewall_allow   = ['10.128.0.0/9'],
-  Enum['xlarge', 'large'] $architecture     = 'xlarge'
+  Enum['xlarge', 'large'] $architecture     = 'xlarge',
+  Enum['google']          $provider         = 'google'
 ) {
+
+  $tf_dir = "ext/terraform/${provider}_pe_arch/${architecture}"
 
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
@@ -43,7 +46,7 @@ plan autope::destroy(
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptible for use with multiple cloud providers
     run_plan('terraform::destroy',
-      dir           => "ext/terraform/pe_arch/${architecture}",
+      dir           => $tf_dir,
       var_file      => $tfvars_file
     )
   }

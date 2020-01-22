@@ -15,7 +15,15 @@ mod 'puppetlabs-terraform',
     ref: 'init_task'
 
 # External non-Puppet content
-mod 'terraform-pe_arch',
-    git:          'https://github.com/puppetlabs/terraform-pe_arch.git',
+#
+# Not a perfect solution given some assumptions made by r10k about repository
+# naming, most specifically being that there can only by one "-" or "/" in the
+# name and the component preceding those character is dropped. These assumptions
+# make using content from other tool that follow a different naming pattern sub-
+# optimal but ultimately the on disk name and the name of the source repository
+# are not required to match and it's irrelevant to Bolt when the content is
+# outside the modules or site-modules directories.
+mod 'terraform-google_pe_arch',
+    git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
     ref:          'master',
     install_path: 'ext/terraform'
