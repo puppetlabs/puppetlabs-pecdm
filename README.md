@@ -46,15 +46,14 @@ Types of things you'll be paying your cloud provider for
 
 ### Example: params.json
 
-The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The default value for **firewall_allow** is the internal network, if you pass a value other than `0.0.0.0/0` then make sure you include that IP block (`10.128.0.0/9`) or your instances will not be able to communicate as expected. Single IP addresses must be passed as a `/32`.
+The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user. Single IP addresses must be passed as a `/32`.
 
 ```
 {
     "gcp_project"    : "example",
     "ssh_user"       : "john.doe",
     "version"        : "2019.0.4",
-    "firewall_allow" : [ "10.128.0.0/9", "71.236.165.233/32",
-                         "131.252.0.0/16", 140.211.0.0/16 ]
+    "firewall_allow" : [ "71.236.165.233/32", "131.252.0.0/16", 140.211.0.0/16 ]
 
 }
 ```

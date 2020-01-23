@@ -9,12 +9,14 @@ plan autope(
   Array                   $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
   Integer                 $compiler_count   = 3,
   String                  $instance_image   = 'centos-cloud/centos-7',
-  Array                   $firewall_allow   = ['10.128.0.0/9'],
+  Array                   $firewall_allow   = [],
   Enum['xlarge', 'large'] $architecture     = 'xlarge',
   Enum['google']          $provider         = 'google'
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch/${architecture}"
+
+  $allow_with_internal = $firewall_allow << '10.128.0.0/9'
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
@@ -23,10 +25,11 @@ plan autope(
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
   # of Puppet expressions, typing, and documentation
-  # # Converting Array typed parameters to Strings to prevent HEREDOC from
-  # strippng quotes and ensuring the quotes used are " instead of ', which are
-  # both requied to exist in the tfvars file. Attempted to use a type
-  # converstion formatter instead of regsubst() but couldn't get it to work and
+  #
+  # Converting Array typed parameters to Strings to prevent HEREDOC from
+  # stripping quotes and ensuring the quotes used are " instead of ', which are
+  # both required to exist in the tfvars file. Attempted to use a type
+  # conversion formatter instead of regsubst() but couldn't get it to work and
   # docs are sparse on how it's suppose to work
   $tfvars = @("TFVARS")
     project        = "${gcp_project}"
@@ -36,7 +39,7 @@ plan autope(
     zones          = ${String($cloud_zones).regsubst('\'', '"', 'G')}
     compiler_count = ${compiler_count}
     instance_image = "${instance_image}"
-    firewall_allow = ${String($firewall_allow).regsubst('\'', '"', 'G')}
+    firewall_allow = ${String($allow_with_internal).regsubst('\'', '"', 'G')}
     |-TFVARS
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
@@ -47,7 +50,7 @@ plan autope(
   $apply = autope::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a
     # specific set of data via TF outputs that if replicated will make this plan
-    # easily adaptible for use with multiple cloud providers
+    # easily adaptable for use with multiple cloud providers
     run_plan('terraform::apply',
       dir           => $tf_dir,
       return_output => true,
@@ -56,7 +59,7 @@ plan autope(
   }
 
   # Intentionally not using Bolt inventory plugin for Terraform to enable the
-  # dynamic sourcing of node names by abstracting the differences inherint in
+  # dynamic sourcing of node names by abstracting the differences inherent in
   # the resources names stored in the TF state file to allow the addition of
   # support for cloud providers beyond GCP. In addition, we must construct the
   # inventory node name from multiple properties of the resource, a feature not
