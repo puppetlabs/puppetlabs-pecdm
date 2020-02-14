@@ -70,9 +70,7 @@ This can also be used to deploy PE's large architecture without a fail over repl
 
 The number of options required are reduced when destroying a stack
 
-**Extra Large**: `bolt plan run autope::destroy gcp_project=example`
-
-**Large**: `bolt plan run autope::destroy gcp_project=example architecture=large`
+`bolt plan run autope::destroy`
 
 ## Limitations
 

@@ -1,6 +1,6 @@
 plan autope(
   TargetSpec              $targets          = get_targets('pe_adm_nodes'),
-  String                  $version          = '2019.2.2',
+  String                  $version          = '2019.3.0',
   String                  $console_password = 'puppetlabs',
   String                  $gcp_project,
   String                  $ssh_user,
@@ -14,7 +14,7 @@ plan autope(
   Enum['google']          $provider         = 'google'
 ) {
 
-  $tf_dir = "ext/terraform/${provider}_pe_arch/${architecture}"
+  $tf_dir = "ext/terraform/${provider}_pe_arch"
 
   $allow_with_internal = $firewall_allow << '10.128.0.0/9'
 
@@ -40,6 +40,7 @@ plan autope(
     compiler_count = ${compiler_count}
     instance_image = "${instance_image}"
     firewall_allow = ${String($allow_with_internal).regsubst('\'', '"', 'G')}
+    architecture   = "${architecture}"
     |-TFVARS
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
@@ -58,35 +59,42 @@ plan autope(
     )
   }
 
-  # Intentionally not using Bolt inventory plugin for Terraform to enable the
-  # dynamic sourcing of node names by abstracting the differences inherent in
-  # the resources names stored in the TF state file to allow the addition of
-  # support for cloud providers beyond GCP. In addition, we must construct the
-  # inventory node name from multiple properties of the resource, a feature not
-  # available from the current inventory plugin.
-  $apply['infrastructure']['value'].each |$k,$v| { $v.each |$s| {
-    Target.new({
-      'name'   => $s[0],
-      'uri'    => $s[1],
-      'config' => {
-        'ssh' => {
-          'user'           => $ssh_user,
-          'host-key-check' => false,
-          'run-as'         => 'root',
-          'tty'            => true
-        }
+  $target_config = {
+    'config' => {
+      'ssh' => {
+        'user'           => $ssh_user,
+        'host-key-check' => false,
+        'run-as'         => 'root',
+        'tty'            => true
       }
-    }).add_to_group('pe_adm_nodes')
+    }
+  }
+
+  $inventory = ['master', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
+    $memo + { $i => resolve_references({
+        '_plugin'        => 'terraform',
+        'dir'            => $tf_dir,
+        'resource_type'  => "google_compute_instance.${i}",
+        'target_mapping' => {
+          'name' => 'metadata.internalDNS',
+          'uri'  => 'network_interface.0.access_config.0.nat_ip',
+        }
+      })
+    }
+  }
+
+  $inventory.each |$k, $v| { $v.each |$target| {
+    Target.new($target.merge($target_config)).add_to_group('pe_adm_nodes')
   }}
 
   case $architecture {
     'xlarge': {
       $params = {
-        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
-        'puppetdb_database_host'         => $apply['infrastructure']['value']['psql'][0][0],
-        'master_replica_host'            => $apply['infrastructure']['value']['masters'][1][0],
-        'puppetdb_database_replica_host' => $apply['infrastructure']['value']['psql'][1][0],
-        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
+        'master_host'                    => $inventory['master'][0]['name'],
+        'master_replica_host'            => $inventory['master'][1]['name'],
+        'puppetdb_database_host'         => $inventory['psql'][0]['name'],
+        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
+        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
         'console_password'               => $console_password,
         'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
         'compiler_pool_address'          => $apply['pool']['value'],
@@ -95,15 +103,15 @@ plan autope(
     }
     'large': {
       $params = {
-        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
-        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
+        'master_host'                    => $inventory['master'][0]['name'],
+        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
         'console_password'               => $console_password,
         'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
         'compiler_pool_address'          => $apply['pool']['value'],
         'version'                        => $version
       }
     }
-    default: { fail('Something went horribly wrong') }
+    default: { fail('Something went horribly wrong or only xlarge is supported in this configuration') }
   }
 
   # Once all the infrastructure data has been collected, peadm takes over
