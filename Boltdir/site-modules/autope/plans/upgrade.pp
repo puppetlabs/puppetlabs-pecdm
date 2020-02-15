@@ -39,19 +39,19 @@ plan autope::upgrade(
   case $architecture {
     'xlarge': {
       $params = {
-        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
-        'puppetdb_database_host'         => $apply['infrastructure']['value']['psql'][0][0],
-        'master_replica_host'            => $apply['infrastructure']['value']['masters'][1][0],
-        'puppetdb_database_replica_host' => $apply['infrastructure']['value']['psql'][1][0],
-        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
+        'master_host'                    => $inventory['master'][0]['name'],
+        'master_replica_host'            => $inventory['master'][1]['name']
+        'puppetdb_database_host'         => $inventory['psql'][0]['name'],
+        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'], 
+        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
         'version'                        => $version
       }
     }
     'large': {
       $params = {
-        'master_host'                    => $apply['infrastructure']['value']['masters'][0][0],
-        'compiler_hosts'                 => $apply['infrastructure']['value']['compilers'].map |$c| { $c[0] },
-        'version'                        => $version
+        'master_host'    => $inventory['master'][0]['name'],
+        'compiler_hosts' => $inventory['compiler'].map |$c| { $c['name'] },
+        'version'        => $version
       }
     }
     default: { fail('Something went horribly wrong') }
