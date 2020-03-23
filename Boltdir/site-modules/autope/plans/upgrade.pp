@@ -40,9 +40,9 @@ plan autope::upgrade(
     'xlarge': {
       $params = {
         'master_host'                    => $inventory['master'][0]['name'],
-        'master_replica_host'            => $inventory['master'][1]['name']
+        'master_replica_host'            => $inventory['master'][1]['name'],
         'puppetdb_database_host'         => $inventory['psql'][0]['name'],
-        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'], 
+        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
         'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
         'version'                        => $version
       }
