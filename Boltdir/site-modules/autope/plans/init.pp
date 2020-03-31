@@ -1,17 +1,17 @@
 plan autope(
-  TargetSpec              $targets          = get_targets('pe_adm_nodes'),
-  String                  $version          = '2019.3.0',
-  String                  $console_password = 'puppetlabs',
-  String                  $gcp_project,
-  String                  $ssh_user,
-  String                  $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
-  String                  $cloud_region     = 'us-west1',
-  Array                   $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
-  Integer                 $compiler_count   = 3,
-  String                  $instance_image   = 'centos-cloud/centos-7',
-  Array                   $firewall_allow   = [],
-  Enum['xlarge', 'large'] $architecture     = 'xlarge',
-  Enum['google']          $provider         = 'google'
+  TargetSpec                          $targets          = get_targets('pe_adm_nodes'),
+  String                              $version          = '2019.3.0',
+  String                              $console_password = 'puppetlabs',
+  String                              $gcp_project,
+  String                              $ssh_user,
+  String                              $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
+  String                              $cloud_region     = 'us-west1',
+  Array                               $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
+  Integer                             $compiler_count   = 3,
+  String                              $instance_image   = 'centos-cloud/centos-7',
+  Array                               $firewall_allow   = [],
+  Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
+  Enum['google']                      $provider         = 'google'
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
@@ -105,6 +105,15 @@ plan autope(
       $params = {
         'master_host'                    => $inventory['master'][0]['name'],
         'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
+        'version'                        => $version
+      }
+    }
+    'standard': {
+      $params = {
+        'master_host'                    => $inventory['master'][0]['name'],
         'console_password'               => $console_password,
         'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
         'compiler_pool_address'          => $apply['pool']['value'],
