@@ -1,5 +1,7 @@
 plan autope(
   TargetSpec                          $targets          = get_targets('pe_adm_nodes'),
+  Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
+  Enum['google','aws']                $provider         = 'google',
   String                              $version          = '2019.3.0',
   String                              $console_password = 'puppetlabs',
   String                              $project,
@@ -9,9 +11,7 @@ plan autope(
   Array                               $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
   Integer                             $compiler_count   = 3,
   String                              $instance_image   = 'centos-cloud/centos-7',
-  Array                               $firewall_allow   = [],
-  Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
-  Enum['google','aws']                $provider         = 'google'
+  Array                               $firewall_allow   = []
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"

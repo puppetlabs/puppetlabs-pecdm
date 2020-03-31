@@ -1,5 +1,5 @@
 {
-"gcp_project"    : "example",
+"project"        : "example",
 "ssh_user"       : "john.doe",
 "firewall_allow" : [ "0.0.0.0/0" ]
 }
