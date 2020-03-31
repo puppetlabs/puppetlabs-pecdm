@@ -2,7 +2,7 @@ plan autope(
   TargetSpec                          $targets          = get_targets('pe_adm_nodes'),
   String                              $version          = '2019.3.0',
   String                              $console_password = 'puppetlabs',
-  String                              $gcp_project,
+  String                              $project,
   String                              $ssh_user,
   String                              $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String                              $cloud_region     = 'us-west1',
@@ -11,7 +11,7 @@ plan autope(
   String                              $instance_image   = 'centos-cloud/centos-7',
   Array                               $firewall_allow   = [],
   Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
-  Enum['google']                      $provider         = 'google'
+  Enum['google','aws']                $provider         = 'google'
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
@@ -32,7 +32,7 @@ plan autope(
   # conversion formatter instead of regsubst() but couldn't get it to work and
   # docs are sparse on how it's suppose to work
   $tfvars = @("TFVARS")
-    project        = "${gcp_project}"
+    project        = "${project}"
     user           = "${ssh_user}"
     ssh_key        = "${ssh_pub_key_file}"
     region         = "${cloud_region}"
@@ -74,10 +74,19 @@ plan autope(
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
-        'resource_type'  => "google_compute_instance.${i}",
-        'target_mapping' => {
-          'name' => 'metadata.internalDNS',
-          'uri'  => 'network_interface.0.access_config.0.nat_ip',
+        'resource_type'  => $provider ? {
+          'google' => "google_compute_instance.${i}",
+          'aws'    => "aws_instance.${i}",
+        },
+        'target_mapping' => $provider ? {
+          'google' => {
+            'name' => 'metadata.internalDNS',
+            'uri'  => 'network_interface.0.access_config.0.nat_ip',
+          },
+          'aws' => {
+            'name' => 'public_dns',
+            'uri'  => 'public_ip',
+          }
         }
       })
     }
