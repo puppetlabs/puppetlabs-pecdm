@@ -1,22 +1,26 @@
 plan autope(
   TargetSpec                          $targets          = get_targets('pe_adm_nodes'),
   Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
-  Enum['google','aws']                $provider         = 'google',
+  Enum['google', 'aws']               $provider         = 'google',
   String                              $version          = '2019.3.0',
   String                              $console_password = 'puppetlabs',
-  String                              $project,
-  String                              $ssh_user,
   String                              $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String                              $cloud_region     = 'us-west1',
-  Array                               $cloud_zones      = ["${cloud_region}-a", "${cloud_region}-b", "${cloud_region}-c"],
   Integer                             $compiler_count   = 3,
   String                              $instance_image   = 'centos-cloud/centos-7',
-  Array                               $firewall_allow   = []
+  Array                               $firewall_allow   = [],
+  String                              $project,
+  String                              $ssh_user
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
 
-  $allow_with_internal = $firewall_allow << '10.128.0.0/9'
+  if $provider == 'aws' {
+    if $architecture == 'standard' {
+      fail('When utilizing the aws provider you are limited to the xlarge and large architectures')
+    }
+    waring('AWS provider is currently expiremental and may change in a future release')
+  }
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
@@ -31,17 +35,21 @@ plan autope(
   # both required to exist in the tfvars file. Attempted to use a type
   # conversion formatter instead of regsubst() but couldn't get it to work and
   # docs are sparse on how it's suppose to work
-  $tfvars = @("TFVARS")
-    project        = "${project}"
-    user           = "${ssh_user}"
-    ssh_key        = "${ssh_pub_key_file}"
-    region         = "${cloud_region}"
-    zones          = ${String($cloud_zones).regsubst('\'', '"', 'G')}
-    compiler_count = ${compiler_count}
-    instance_image = "${instance_image}"
-    firewall_allow = ${String($allow_with_internal).regsubst('\'', '"', 'G')}
-    architecture   = "${architecture}"
-    |-TFVARS
+  $vars_template = @(TFVARS)
+    <% unless $project == undef { -%>
+    project        = "<%= $project %>"
+    <% } -%>
+    user           = "<%= $ssh_user %>"
+    ssh_key        = "<%= $ssh_pub_key_file %>"
+    region         = "<%= $cloud_region %>"
+    compiler_count = <%= $compiler_count %>
+    instance_image = "<%= $instance_image %>"
+    firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
+    architecture   = "<%= $architecture %>"
+    |TFVARS
+
+  $tfvars = inline_epp($vars_template)
+
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time

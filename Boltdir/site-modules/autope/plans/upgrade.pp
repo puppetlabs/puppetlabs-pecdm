@@ -1,12 +1,16 @@
 plan autope::upgrade(
-  TargetSpec              $targets          = get_targets('pe_adm_nodes'),
-  String                  $version          = '2019.3.0',
-  String                  $ssh_user,
-  Enum['xlarge', 'large'] $architecture     = 'xlarge',
-  Enum['google']          $provider         = 'google'
+  TargetSpec                           $targets          = get_targets('pe_adm_nodes'),
+  String                               $version          = '2019.3.0',
+  String                               $ssh_user,
+  Enum['xlarge', 'large', 'starndard'] $architecture     = 'xlarge',
+  Enum['google', 'aws']                $provider         = 'google'
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
+
+  if $provider == 'aws' {
+    waring('AWS provider is currently expiremental and may change in a future release')
+  }
 
   $target_config = {
     'config' => {
@@ -23,10 +27,19 @@ plan autope::upgrade(
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
-        'resource_type'  => "google_compute_instance.${i}",
-        'target_mapping' => {
-          'name' => 'metadata.internalDNS',
-          'uri'  => 'network_interface.0.access_config.0.nat_ip',
+        'resource_type'  => $provider ? {
+          'google' => "google_compute_instance.${i}",
+          'aws'    => "aws_instance.${i}",
+        },
+        'target_mapping' => $provider ? {
+          'google' => {
+            'name' => 'metadata.internalDNS',
+            'uri'  => 'network_interface.0.access_config.0.nat_ip',
+          },
+          'aws' => {
+            'name' => 'public_dns',
+            'uri'  => 'public_ip',
+          }
         }
       })
     }
@@ -44,17 +57,32 @@ plan autope::upgrade(
         'puppetdb_database_host'         => $inventory['psql'][0]['name'],
         'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
         'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
         'version'                        => $version
       }
     }
     'large': {
       $params = {
-        'master_host'    => $inventory['master'][0]['name'],
-        'compiler_hosts' => $inventory['compiler'].map |$c| { $c['name'] },
-        'version'        => $version
+        'master_host'                    => $inventory['master'][0]['name'],
+        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
+        'version'                        => $version
       }
     }
-    default: { fail('Something went horribly wrong') }
+    'standard': {
+      $params = {
+        'master_host'                    => $inventory['master'][0]['name'],
+        'console_password'               => $console_password,
+        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'          => $apply['pool']['value'],
+        'version'                        => $version
+      }
+    }
+    default: { fail('Something went horribly wrong or only xlarge is supported in this configuration') }
   }
 
   # Once all the infrastructure data has been collected, peadm takes over

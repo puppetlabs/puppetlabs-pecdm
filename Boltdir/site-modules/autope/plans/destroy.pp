@@ -1,11 +1,15 @@
 plan autope::destroy(
   TargetSpec              $targets          = get_targets('pe_adm_nodes'),
-  String                  $gcp_project      = 'oppenheimer',
+  String                  $project          = 'oppenheimer',
   String                  $ssh_user         = 'oppenheimer',
-  Enum['google']          $provider         = 'google'
+  Enum['google', 'aws']   $provider         = 'google'
 ) {
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
+
+  if $provider == 'aws' {
+    waring('AWS provider is currently expiremental and may change in a future release')
+  }
 
   # Mapping all the plan parameters to their corresponding Terraform vars,
   # choosing to maintain a mirrored list so I can leverage the flexibility
@@ -16,10 +20,15 @@ plan autope::destroy(
   # both required to exist in the tfvars file. Attempted to use a type
   # conversion formatter instead of regsubst() but couldn't get it to work and
   # docs are sparse on how it's suppose to work
-  $tfvars = @("TFVARS")
-    project        = "${gcp_project}"
-    user           = "${ssh_user}"
-    |-TFVARS
+  $vars_template = @(TFVARS)
+    <% unless $project == undef { -%>
+    project        = "<%= $project %>"
+    <% } -%>
+    user           = "<%= $ssh_user %>"
+    destroy        = true
+    |TFVARS
+
+  $tfvars = inline_epp($vars_template)
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time
