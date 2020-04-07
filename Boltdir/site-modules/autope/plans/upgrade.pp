@@ -6,6 +6,8 @@ plan autope::upgrade(
   Enum['google', 'aws']                $provider         = 'google'
 ) {
 
+  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
+
   $tf_dir = "ext/terraform/${provider}_pe_arch"
 
   if $provider == 'aws' {
