@@ -13,13 +13,19 @@ plan autope(
   String                              $ssh_user
 ) {
 
+  # Ensure that actions that operate on localhost use the local transport, else
+  # Bolt will probably try to use SSH and most likely fail
+  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
+
+  # Where r10k deploys our various Terraform modules for each cloud provider
   $tf_dir = "ext/terraform/${provider}_pe_arch"
 
+  # AWS Terraform module does not yet have parity to GCP 
   if $provider == 'aws' {
     if $architecture == 'standard' {
       fail('When utilizing the aws provider you are limited to the xlarge and large architectures')
     }
-    waring('AWS provider is currently expiremental and may change in a future release')
+    waring('AWS provider is currently experimental and may change in a future release')
   }
 
   # Ensure the Terraform project directory has been initialized ahead of
@@ -30,11 +36,9 @@ plan autope(
   # choosing to maintain a mirrored list so I can leverage the flexibility
   # of Puppet expressions, typing, and documentation
   #
-  # Converting Array typed parameters to Strings to prevent HEREDOC from
-  # stripping quotes and ensuring the quotes used are " instead of ', which are
-  # both required to exist in the tfvars file. Attempted to use a type
-  # conversion formatter instead of regsubst() but couldn't get it to work and
-  # docs are sparse on how it's suppose to work
+  # Quoting is important in a Terraform vars file so we take care in preserving
+  # them and converting single quotes to double. Chose to use an inline_epp
+  # instead of pure HEREDOC to allow for the use of conditionals
   $vars_template = @(TFVARS)
     <% unless $project == undef { -%>
     project        = "<%= $project %>"
@@ -49,7 +53,6 @@ plan autope(
     |TFVARS
 
   $tfvars = inline_epp($vars_template)
-
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time
@@ -67,6 +70,9 @@ plan autope(
     )
   }
 
+  # A pretty basic target config that just ensures we'll SSH into linux hosts
+  # with a specific user and properly escalate to the root user, ignores host
+  # keys because this is largely disposable infrastructure
   $target_config = {
     'config' => {
       'ssh' => {
@@ -78,6 +84,10 @@ plan autope(
     }
   }
 
+  # Generate an inventory of freshly provisioned nodes using the parameters that
+  # are appropriate based on which cloud provider we've chosen to use. Utilizes
+  # different name and uri parameters to allow for the target's SSH address to
+  # differ from the names used to configure Puppet on the internal interfaces
   $inventory = ['master', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
@@ -100,10 +110,15 @@ plan autope(
     }
   }
 
+  # Create and Target objects from our previously generated inventory and add
+  # them to the pe_adm_nodes group
   $inventory.each |$k, $v| { $v.each |$target| {
     Target.new($target.merge($target_config)).add_to_group('pe_adm_nodes')
   }}
 
+  # Generate a parameters list to be fed to puppetlabs/peadm based on which
+  # architecture we've chosen to deploy. The default case should never be
+  # reached since any architecture has been previously validated.
   case $architecture {
     'xlarge': {
       $params = {
@@ -137,9 +152,9 @@ plan autope(
         'version'                        => $version
       }
     }
-    default: { fail('Something went horribly wrong or only xlarge is supported in this configuration') }
+    default: { fail('Something went horribly wrong') }
   }
 
-  # Once all the infrastructure data has been collected, peadm takes over
+  # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
   run_plan('peadm::provision', $params)
 }
