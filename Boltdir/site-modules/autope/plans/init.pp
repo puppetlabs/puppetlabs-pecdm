@@ -157,4 +157,7 @@ plan autope(
 
   # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
   run_plan('peadm::provision', $params)
+
+  $console = $apply['console']['value']
+  out::message("Log into Puppet Enterprise Console: https://${console}")
 }
