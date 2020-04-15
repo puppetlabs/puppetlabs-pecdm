@@ -10,7 +10,8 @@ plan autope(
   String                              $instance_image   = 'centos-cloud/centos-7',
   Array                               $firewall_allow   = [],
   String                              $project,
-  String                              $ssh_user
+  String                              $ssh_user,
+  Hash                                $extra_peadm_params = {},
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -156,7 +157,7 @@ plan autope(
   }
 
   # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
-  run_plan('peadm::provision', $params)
+  run_plan('peadm::provision', $params + $extra_peadm_params)
 
   $console = $apply['console']['value']
   out::message("Log into Puppet Enterprise Console: https://${console}")
