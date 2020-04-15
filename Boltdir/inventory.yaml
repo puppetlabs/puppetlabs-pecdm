@@ -7,7 +7,7 @@ config:
     run-as: root
     tty: true
 groups:
-  - name: pe_adm_nodes
+  - name: peadm_nodes
     targets:
       - _plugin: terraform
         dir: ext/terraform/google_pe_arch

@@ -1,5 +1,5 @@
 plan autope::upgrade(
-  TargetSpec                           $targets          = get_targets('pe_adm_nodes'),
+  TargetSpec                           $targets          = get_targets('peadm_nodes'),
   String                               $version          = '2019.3.0',
   String                               $ssh_user,
   Enum['xlarge', 'large', 'starndard'] $architecture     = 'xlarge',
@@ -48,7 +48,7 @@ plan autope::upgrade(
   }
 
   $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('pe_adm_nodes')
+    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   }}
 
   case $architecture {

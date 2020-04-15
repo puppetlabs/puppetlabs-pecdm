@@ -1,5 +1,5 @@
 plan autope(
-  TargetSpec                          $targets          = get_targets('pe_adm_nodes'),
+  TargetSpec                          $targets          = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
   Enum['google', 'aws']               $provider         = 'google',
   String                              $version          = '2019.3.0',
@@ -111,9 +111,9 @@ plan autope(
   }
 
   # Create and Target objects from our previously generated inventory and add
-  # them to the pe_adm_nodes group
+  # them to the peadm_nodes group
   $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('pe_adm_nodes')
+    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   }}
 
   # Generate a parameters list to be fed to puppetlabs/peadm based on which
