@@ -1,5 +1,5 @@
 plan autope::destroy(
-  TargetSpec              $targets          = get_targets('pe_adm_nodes'),
+  TargetSpec              $targets          = get_targets('peadm_nodes'),
   String                  $project          = 'oppenheimer',
   String                  $ssh_user         = 'oppenheimer',
   Enum['google', 'aws']   $provider         = 'google'
