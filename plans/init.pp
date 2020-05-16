@@ -2,11 +2,12 @@ plan autope(
   TargetSpec                          $targets          = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
   Enum['google', 'aws']               $provider         = 'google',
-  String                              $version          = '2019.3.0',
+  String                              $version          = '2019.7.0',
   String                              $console_password = 'puppetlabs',
   String                              $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
   String                              $cloud_region     = 'us-west1',
   Integer                             $compiler_count   = 3,
+  Optional[Integer]                   $node_count       = undef,
   String                              $instance_image   = 'centos-cloud/centos-7',
   Array                               $firewall_allow   = [],
   String                              $project,
@@ -48,6 +49,9 @@ plan autope(
     ssh_key        = "<%= $ssh_pub_key_file %>"
     region         = "<%= $cloud_region %>"
     compiler_count = <%= $compiler_count %>
+    <% unless $node_count == undef { -%>
+    node_count     = "<%= $node_count %>"
+    <% } -%>
     instance_image = "<%= $instance_image %>"
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
@@ -89,7 +93,7 @@ plan autope(
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
   # different name and uri parameters to allow for the target's SSH address to
   # differ from the names used to configure Puppet on the internal interfaces
-  $inventory = ['master', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
+  $inventory = ['master', 'psql', 'compiler', 'node' ].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
@@ -112,10 +116,14 @@ plan autope(
   }
 
   # Create and Target objects from our previously generated inventory and add
-  # them to the peadm_nodes group
+  # them to the peadm_nodes group and agent_nodes
   $inventory.each |$k, $v| { $v.each |$target| {
     Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   }}
+
+  $inventory['node'].each |$target| {
+    Target.new($target.merge($target_config)).add_to_group('agent_nodes')
+  }
 
   # Generate a parameters list to be fed to puppetlabs/peadm based on which
   # architecture we've chosen to deploy. The default case should never be
@@ -158,6 +166,15 @@ plan autope(
 
   # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
   run_plan('peadm::provision', $params + $extra_peadm_params)
+
+  if $node_count {
+    run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
+    # Just in case, sleep 5...just in case...
+    ctrl::sleep(5)
+    run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
+    run_task('peadm::puppet_runonce', get_targets('agent_nodes'))
+
+  }
 
   $console = $apply['console']['value']
   out::message("Log into Puppet Enterprise Console: https://${console}")
