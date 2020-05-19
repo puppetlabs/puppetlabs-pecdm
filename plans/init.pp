@@ -1,18 +1,18 @@
 plan autope(
-  TargetSpec                          $targets          = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard'] $architecture     = 'xlarge',
-  Enum['google', 'aws']               $provider         = 'google',
-  String                              $version          = '2019.7.0',
-  String                              $console_password = 'puppetlabs',
-  String                              $ssh_pub_key_file = '~/.ssh/id_rsa.pub',
-  String                              $cloud_region     = 'us-west1',
-  Integer                             $compiler_count   = 3,
-  Optional[Integer]                   $node_count       = undef,
-  String                              $instance_image   = 'centos-cloud/centos-7',
-  Array                               $firewall_allow   = [],
+  TargetSpec                          $targets            = get_targets('peadm_nodes'),
+  Enum['xlarge', 'large', 'standard'] $architecture       = 'xlarge',
+  Enum['google', 'aws']               $provider           = 'google',
+  String                              $version            = '2019.7.0',
+  String                              $console_password   = 'puppetlabs',
+  String                              $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
+  String                              $cloud_region       = 'us-west1',
+  Integer                             $compiler_count     = 3,
+  Optional[Integer]                   $node_count         = undef,
+  String                              $instance_image     = 'centos-cloud/centos-7',
+  Array                               $firewall_allow     = [],
+  Hash                                $extra_peadm_params = {},
   String                              $project,
   String                              $ssh_user,
-  Hash                                $extra_peadm_params = {},
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -21,14 +21,6 @@ plan autope(
 
   # Where r10k deploys our various Terraform modules for each cloud provider
   $tf_dir = "ext/terraform/${provider}_pe_arch"
-
-  # AWS Terraform module does not yet have parity to GCP 
-  if $provider == 'aws' {
-    if $architecture == 'standard' {
-      fail('When utilizing the aws provider you are limited to the xlarge and large architectures')
-    }
-    waring('AWS provider is currently experimental and may change in a future release')
-  }
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply
@@ -173,7 +165,6 @@ plan autope(
     ctrl::sleep(5)
     run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
     run_task('peadm::puppet_runonce', get_targets('agent_nodes'))
-
   }
 
   $console = $apply['console']['value']
