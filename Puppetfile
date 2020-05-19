@@ -30,7 +30,7 @@ mod 'terraform-google_pe_arch',
     install_path: 'ext/terraform'
 
 mod 'terraform-aws_pe_arch',
-   git:          'https://github.com/timidri/terraform-aws-pe_arch.git',
+   git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
    ref:          'master',
    install_path: 'ext/terraform'
-   
+
