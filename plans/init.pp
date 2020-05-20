@@ -1,8 +1,8 @@
 plan autope(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard'] $architecture       = 'xlarge',
+  Enum['xlarge', 'large', 'standard'] $architecture       = 'large',
   Enum['google', 'aws']               $provider           = 'google',
-  String                              $version            = '2019.7.0',
+  String                              $version            = '2019.5.0',
   String                              $console_password   = 'puppetlabs',
   String                              $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
   String                              $cloud_region       = 'us-west1',
@@ -164,7 +164,6 @@ plan autope(
     # Just in case, sleep 5...just in case...
     ctrl::sleep(5)
     run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
-    run_task('peadm::puppet_runonce', get_targets('agent_nodes'))
   }
 
   $console = $apply['console']['value']
