@@ -50,7 +50,7 @@ Types of things you'll be paying your cloud provider for
 1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-autope.git && cd puppetlabs-autope/Boltdir`
 2. Install module dependencies: `bolt puppetfile install`
 3. Run plan: `bolt plan run autope project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
-4. Wait. This is best executed from a GCP bastion host or alternatively, a fast connection with strong upload bandwidth
+4. Wait. This is best executed from a bastion host or alternatively, a fast connection with strong upload bandwidth
 
 ## Usage
 
@@ -70,13 +70,13 @@ The command line will likely serve most uses of **autope** but if you wish to pa
 
 How to execute plan with **params.json**: `bolt plan run autope --params @params.json`
 
-### Example: deploy large architecture on AWS with the developer role using a MFA enabled user
+### Example: deploy standard architecture on AWS with the developer role using a MFA enabled user
 
 This can also be used to deploy PE's large architecture without a fail over replica on AWS
 
 ```
 $(export-profile.py development)
-bolt plan run autope project=example ssh_user=centos instance_image="CentOS Linux 7*ENA*" cloud_region=us-west-2 provider=aws architecture=large
+bolt plan run autope provider=aws architecture=standard
 ```
 
 ### Example: destroy GCP stack

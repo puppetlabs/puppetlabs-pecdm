@@ -1,24 +1,26 @@
 plan autope::destroy(
   TargetSpec              $targets          = get_targets('peadm_nodes'),
-  String                  $project          = 'oppenheimer',
-  String                  $ssh_user         = 'oppenheimer',
-  Enum['google', 'aws']   $provider         = 'google'
+  Enum['google', 'aws']   $provider         = 'google',
+  String[1]               $project          = $provider ? { 'aws' => 'ape', default => 'oppenheimer' },
+  String[1]               $ssh_user         = $provider ? { 'aws' => 'centos', default => 'oppenheimer' },
+  String[1]               $cloud_region     = $provider ? { 'aws' => 'us-west-2', default => 'us-west1' },
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
   $tf_dir = "ext/terraform/${provider}_pe_arch"
 
-  if $provider == 'aws' {
-    waring('AWS provider is currently expiremental and may change in a future release')
-  }
-
   $vars_template = @(TFVARS)
     <% unless $project == undef { -%>
     project        = "<%= $project %>"
     <% } -%>
+    <% unless $cloud_region == undef { -%>
+    region        = "<%= $cloud_region %>"
+    <% } -%>
     user           = "<%= $ssh_user %>"
+    <% if $provider == 'google' { -%>
     destroy        = true
+    <% } -%>
     |TFVARS
 
   $tfvars = inline_epp($vars_template)

@@ -1,23 +1,29 @@
 plan autope(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard'] $architecture       = 'large',
   Enum['google', 'aws']               $provider           = 'google',
-  String                              $version            = '2019.5.0',
-  String                              $console_password   = 'puppetlabs',
-  String                              $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
-  String                              $cloud_region       = 'us-west1',
+  Enum['xlarge', 'large', 'standard'] $architecture       = 'large',
+  String[1]                           $version            = '2019.5.0',
+  String[1]                           $console_password   = 'puppetlabs',
+  String[1]                           $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
   Integer                             $compiler_count     = 3,
   Optional[Integer]                   $node_count         = undef,
-  String                              $instance_image     = 'centos-cloud/centos-7',
+  Optional[String[1]]                 $instance_image     = undef,
   Array                               $firewall_allow     = [],
   Hash                                $extra_peadm_params = {},
-  String                              $project,
-  String                              $ssh_user,
+  String[1]                           $project            = $provider ? { 'aws' => 'ape', default => undef },
+  String[1]                           $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
+  String[1]                           $cloud_region       = $provider ? { 'aws' => 'us-west-2', default => 'us-west1' },
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
   # Bolt will probably try to use SSH and most likely fail
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
+
+  # aws-pe_arch currently does not currently establish firewall rules upon
+  # deployment of security groups so stacks are open to the internet
+  if $provider == 'aws' and ! $firewall_allow.empty {
+    out::message('WARNING: AWS provider currently ignores firewall rules and builds stacks open to the internet')
+  }
 
   # Where r10k deploys our various Terraform modules for each cloud provider
   $tf_dir = "ext/terraform/${provider}_pe_arch"
@@ -34,9 +40,7 @@ plan autope(
   # them and converting single quotes to double. Chose to use an inline_epp
   # instead of pure HEREDOC to allow for the use of conditionals
   $vars_template = @(TFVARS)
-    <% unless $project == undef { -%>
     project        = "<%= $project %>"
-    <% } -%>
     user           = "<%= $ssh_user %>"
     ssh_key        = "<%= $ssh_pub_key_file %>"
     region         = "<%= $cloud_region %>"
@@ -44,7 +48,9 @@ plan autope(
     <% unless $node_count == undef { -%>
     node_count     = "<%= $node_count %>"
     <% } -%>
+    <% unless $instance_image == undef { -%>
     instance_image = "<%= $instance_image %>"
+    <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
     |TFVARS
@@ -160,10 +166,27 @@ plan autope(
   run_plan('peadm::provision', $params + $extra_peadm_params)
 
   if $node_count {
-    run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
-    # Just in case, sleep 5...just in case...
-    ctrl::sleep(5)
-    run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
+    # Annoying work around for AWS not setting the hostname we want. Doing this
+    # only for AWS to keep concurrency when doing GCP and would prefer to solve
+    # this issue from within Terraform but could not come up with clean solution
+    # without further discovery, Bolt's a good hammer
+    if $provider == 'aws' {
+      get_targets('agent_nodes').each |$a| {
+        run_task('peadm::agent_install', $a, {
+          'server' => $apply['pool']['value'],
+          'install_flags' => ["agent:certname=${a.name}"]
+          }
+        )
+        # Just in case, sleep 5...just in case...
+        ctrl::sleep(5)
+        run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => [$a.name] })
+      }
+    } else {
+      run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
+      # Just in case, sleep 5...just in case...
+      ctrl::sleep(5)
+      run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
+    }
   }
 
   $console = $apply['console']['value']
