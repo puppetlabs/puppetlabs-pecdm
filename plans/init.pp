@@ -19,12 +19,6 @@ plan autope(
   # Bolt will probably try to use SSH and most likely fail
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
-  # aws-pe_arch currently does not currently establish firewall rules upon
-  # deployment of security groups so stacks are open to the internet
-  if $provider == 'aws' and ! $firewall_allow.empty {
-    out::message('WARNING: AWS provider currently ignores firewall rules and builds stacks open to the internet')
-  }
-
   # Where r10k deploys our various Terraform modules for each cloud provider
   $tf_dir = "ext/terraform/${provider}_pe_arch"
 
