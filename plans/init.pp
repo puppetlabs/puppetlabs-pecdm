@@ -2,7 +2,7 @@ plan autope(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
   Enum['google', 'aws']               $provider           = 'google',
   Enum['xlarge', 'large', 'standard'] $architecture       = 'large',
-  String[1]                           $version            = '2019.5.0',
+  String[1]                           $version            = '2019.8.1',
   String[1]                           $console_password   = 'puppetlabs',
   String[1]                           $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
   Integer                             $compiler_count     = 3,
