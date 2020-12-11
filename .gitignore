@@ -30,3 +30,4 @@
 /params.json
 .resource_types
 .rerun.json
+bolt-debug.log
