@@ -79,6 +79,13 @@ $(export-profile.py development)
 bolt plan run autope provider=aws architecture=standard
 ```
 
+Please note that for bolt to authenticate to the AWS-provisioned VMs you need to enable ssh agent like so:
+
+```bash
+$ eval `ssh-agent`
+$ ssh-add
+```
+
 ### Example: destroy GCP stack
 
 The number of options required are reduced when destroying a stack
