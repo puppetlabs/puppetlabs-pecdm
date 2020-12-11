@@ -9,7 +9,7 @@ mod 'puppetlabs-bolt_shim', '0.3.0'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'master'
+    ref: 'main'
 mod 'puppetlabs-terraform',
     git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
     ref: 'master'
@@ -26,7 +26,7 @@ mod 'puppetlabs-terraform',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          'master',
+    ref:          'main',
     install_path: 'ext/terraform'
 
 mod 'terraform-aws_pe_arch',
