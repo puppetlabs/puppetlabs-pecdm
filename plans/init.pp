@@ -1,15 +1,17 @@
 plan autope(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
-  Enum['google', 'aws']               $provider           = 'google',
-  Enum['xlarge', 'large', 'standard'] $architecture       = 'large',
-  String[1]                           $version            = '2019.8.1',
+  Enum['xlarge', 'large', 'standard'] $architecture       = 'standard',
+  String[1]                           $version            = '2019.8.5',
   String[1]                           $console_password   = 'puppetlabs',
-  String[1]                           $ssh_pub_key_file   = '~/.ssh/id_rsa.pub',
-  Integer                             $compiler_count     = 3,
+  Integer                             $compiler_count     = 1,
+  Optional[String[1]]                 $ssh_pub_key_file   = undef,
   Optional[Integer]                   $node_count         = undef,
   Optional[String[1]]                 $instance_image     = undef,
   Array                               $firewall_allow     = [],
   Hash                                $extra_peadm_params = {},
+  Boolean                             $replica            = false,
+  # The final three parameters depend on the value of $provider, to do magic
+  Enum['google', 'aws']               $provider,
   String[1]                           $project            = $provider ? { 'aws' => 'ape', default => undef },
   String[1]                           $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
   String[1]                           $cloud_region       = $provider ? { 'aws' => 'us-west-2', default => 'us-west1' },
@@ -36,7 +38,9 @@ plan autope(
   $vars_template = @(TFVARS)
     project        = "<%= $project %>"
     user           = "<%= $ssh_user %>"
+    <% unless $ssh_pub_key_file == undef { -%>
     ssh_key        = "<%= $ssh_pub_key_file %>"
+    <% } -%>
     region         = "<%= $cloud_region %>"
     compiler_count = <%= $compiler_count %>
     <% unless $node_count == undef { -%>
@@ -47,6 +51,7 @@ plan autope(
     <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
+    replica        = <%= $replica %>
     |TFVARS
 
   $tfvars = inline_epp($vars_template)
@@ -85,7 +90,7 @@ plan autope(
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
   # different name and uri parameters to allow for the target's SSH address to
   # differ from the names used to configure Puppet on the internal interfaces
-  $inventory = ['master', 'psql', 'compiler', 'node' ].reduce({}) |Hash $memo, String $i| {
+  $inventory = ['server', 'psql', 'compiler', 'node' ].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
@@ -122,35 +127,55 @@ plan autope(
   # reached since any architecture has been previously validated.
   case $architecture {
     'xlarge': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'master_replica_host'            => $inventory['master'][1]['name'],
-        'puppetdb_database_host'         => $inventory['psql'][0]['name'],
-        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
-        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
+      $base_params = {
+        'master_host'            => $inventory['server'][0]['name'],
+        'puppetdb_database_host' => $inventory['psql'][0]['name'],
+        'compiler_hosts'         => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'       => $console_password,
+        'dns_alt_names'          => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'  => $apply['pool']['value'],
+        'version'                => $version
+      }
+      if $replica {
+        $params = merge($base_params, {
+          'master_replica_host'            => $inventory['server'][1]['name'],
+          'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
+        })
+      } else {
+        $params = $base_params
       }
     }
     'large': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
+      $base_params = {
+        'master_host'           => $inventory['server'][0]['name'],
+        'compiler_hosts'        => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'      => $console_password,
+        'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address' => $apply['pool']['value'],
+        'version'               => $version
+      }
+      if $replica {
+        $params = merge($base_params, {
+          'master_replica_host' => $inventory['server'][1]['name'],
+        })
+      } else {
+        $params = $base_params
       }
     }
     'standard': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
+      $base_params = {
+        'master_host'           => $inventory['server'][0]['name'],
+        'console_password'      => $console_password,
+        'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address' => $apply['pool']['value'],
+        'version'               => $version
+      }
+      if $replica {
+        $params = merge($base_params, {
+          'master_replica_host' => $inventory['server'][1]['name'],
+        })
+      } else {
+        $params = $base_params
       }
     }
     default: { fail('Something went horribly wrong') }
