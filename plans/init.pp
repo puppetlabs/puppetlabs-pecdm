@@ -10,6 +10,7 @@ plan autope(
   Array                               $firewall_allow     = [],
   Hash                                $extra_peadm_params = {},
   Boolean                             $replica            = false,
+  Boolean                             $stage              = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws']               $provider,
   String[1]                           $project            = $provider ? { 'aws' => 'ape', default => undef },
@@ -181,27 +182,26 @@ plan autope(
     default: { fail('Something went horribly wrong') }
   }
 
-  # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
-  run_plan('peadm::provision', $params + $extra_peadm_params)
+  unless $stage {
+    # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
+    run_plan('peadm::provision', $params + $extra_peadm_params)
 
-  if $node_count {
-    # Annoying work around for AWS not setting the hostname we want. Doing this
-    # only for AWS to keep concurrency when doing GCP and would prefer to solve
-    # this issue from within Terraform but could not come up with clean solution
-    # without further discovery, Bolt's a good hammer
-    if $provider == 'aws' {
-      get_targets('agent_nodes').each |$a| {
-        run_task('peadm::agent_install', $a, {
-          'server' => $apply['pool']['value'],
-          'install_flags' => ["agent:certname=${a.name}"]
-          }
-        )
-        # Just in case, sleep 5...just in case...
-        ctrl::sleep(5)
-        run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => [$a.name] })
+    if $node_count {
+      # Annoying work around for AWS not setting the hostname we want. Doing this
+      # only for AWS to keep concurrency when doing GCP and would prefer to solve
+      # this issue from within Terraform but could not come up with clean solution
+      # without further discovery, Bolt's a good hammer
+      if $provider == 'aws' {
+        get_targets('agent_nodes').each |$a| {
+          run_task('peadm::agent_install', $a, {
+            'server' => $apply['pool']['value'],
+            'install_flags' => ["agent:certname=${a.name}"]
+            }
+          )
+        }
+      } else {
+        run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
       }
-    } else {
-      run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
       # Just in case, sleep 5...just in case...
       ctrl::sleep(5)
       run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
