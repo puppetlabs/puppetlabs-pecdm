@@ -15,9 +15,7 @@ Automatic PE, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/pupp
 
 ## Description
 
-This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure deployment and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a [Terraform module](https://github.com/puppetlabs/terraform-google-pe_arch) for GCP to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ fail over replica (default).
-
-Recent changes and an additional [Terraform module](https://github.com/timidri/terraform-aws-pe_arch.git) have made it possible to also use autope to deploy Puppet Enterprise upon AWS but the interface is still being updated for consistency. While the interface is still being updated, consider the AWS support in beta.
+This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure provisioning and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a Terraform module ([GCP](https://github.com/puppetlabs/terraform-google-pe_arch), [AWS](https://github.com/puppetlabs/terraform-aws-pe_arch)) to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ optional fail over replica.
 
 ## Setup
 
@@ -47,8 +45,8 @@ Types of things you'll be paying your cloud provider for
 
 ### Beginning with autope
 
-1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-autope.git && cd puppetlabs-autope/Boltdir`
-2. Install module dependencies: `bolt puppetfile install`
+1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-autope.git && cd puppetlabs-autope`
+2. Install module dependencies: `bolt module install --no-resolve` (manually manages modules to take advantage of functionality that allows for additional content to be deployed that does not adhere to the Puppet Module packaging format, e.g. Terraform modules)
 3. Run plan: `bolt plan run autope project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
 4. Wait. This is best executed from a bastion host or alternatively, a fast connection with strong upload bandwidth
 
@@ -56,13 +54,14 @@ Types of things you'll be paying your cloud provider for
 
 ### Example: params.json
 
-The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user. Single IP addresses must be passed as a `/32`.
+The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user.
 
 ```
 {
     "project"        : "example",
     "ssh_user"       : "john.doe",
     "version"        : "2019.0.4",
+    "provider"       : "google',
     "firewall_allow" : [ "71.236.165.233/32", "131.252.0.0/16", 140.211.0.0/16 ]
 
 }
@@ -90,7 +89,7 @@ $ ssh-add
 
 The number of options required are reduced when destroying a stack
 
-`bolt plan run autope::destroy`
+`bolt plan run autope::destroy provider=google`
 
 ### Example: destroy AWS stack
 
