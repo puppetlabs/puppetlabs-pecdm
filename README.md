@@ -1,6 +1,6 @@
 # autope
 
-Automatic PE, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and Terraform.
+Automatic Puppet Enterprise, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and Terraform.
 
 #### Table of Contents
 
@@ -15,7 +15,17 @@ Automatic PE, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/pupp
 
 ## Description
 
-This Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure provisioning and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a Terraform module ([GCP](https://github.com/puppetlabs/terraform-google-pe_arch), [AWS](https://github.com/puppetlabs/terraform-aws-pe_arch)) to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ optional fail over replica.
+The autope Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure provisioning and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a Terraform module ([GCP](https://github.com/puppetlabs/terraform-google-pe_arch), [AWS](https://github.com/puppetlabs/terraform-aws-pe_arch)) to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ optional fail over replica.
+
+## Expectations and support
+
+The autope Bolt project is developed by Puppet's Solutions Architecture team, intended as an internal tool to make the deployment of disposable stacks of Puppet Enterprise easy to deploy for the reproduction of customer issues, internal development, and demonstrations. Independent use is not recommended for production environments but with a comprehensive understanding of how Puppet Enterprise, Puppet Bolt, and Terraform work, plus high levels of comfort with the modification and maintenance of Terraform code and the infrastructure requirements of a full Puppet Enterprise deployment it could be referenced as an example for building your own automated solution.
+
+The autope Bolt project is an internal tool, and is **NOT** supported through Puppet Enterprise's standard or premium support.puppet.com service.
+
+If you are a Puppet Enterprise customer and come upon this project and wish to provide feedback, submit a feature request, or bugfix then please do so through the [Issues](https://github.com/puppetlabs/puppetlabs-autope/issues) and [Pull Request](https://github.com/puppetlabs/puppetlabs-autope/pulls) components of the GitHub project.
+
+The project is under active development and yet to release an initial version. There is no guarantee yet on a stable interface from commit to commit and those commits may include breaking changes.
 
 ## Setup
 
