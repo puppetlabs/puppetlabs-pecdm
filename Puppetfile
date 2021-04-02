@@ -26,7 +26,7 @@ mod 'puppet-node_manager',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          'ad7f58a4c9f4b3c47db575adc635ef930d300fd3',
+    ref:          '727e01f82e625d0d552f783b4dfc46a3b93ed46b',
     install_path: 'ext/terraform'
 
 mod 'terraform-aws_pe_arch',

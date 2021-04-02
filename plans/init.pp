@@ -192,7 +192,7 @@ plan autope(
       # this issue from within Terraform but could not come up with clean solution
       # without further discovery, Bolt's a good hammer
       if $provider == 'aws' {
-        get_targets('agent_nodes').each |$a| {
+        get_targets('agent_nodes').parallelize |$a| {
           run_task('peadm::agent_install', $a, {
             'server' => $apply['pool']['value'],
             'install_flags' => ["agent:certname=${a.name}"]
@@ -202,8 +202,6 @@ plan autope(
       } else {
         run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
       }
-      # Just in case, sleep 5...just in case...
-      ctrl::sleep(5)
       run_task('peadm::sign_csr', $inventory['server'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
     }
   }
