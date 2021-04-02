@@ -204,7 +204,7 @@ plan autope(
       }
       # Just in case, sleep 5...just in case...
       ctrl::sleep(5)
-      run_task('peadm::sign_csr', $inventory['master'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
+      run_task('peadm::sign_csr', $inventory['server'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
     }
   }
 
