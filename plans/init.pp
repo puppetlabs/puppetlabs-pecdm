@@ -7,6 +7,7 @@ plan autope(
   Optional[String[1]]                 $ssh_pub_key_file   = undef,
   Optional[Integer]                   $node_count         = undef,
   Optional[String[1]]                 $instance_image     = undef,
+  Optional[String[1]]                 $stack              = undef,
   Array                               $firewall_allow     = [],
   Hash                                $extra_peadm_params = {},
   Boolean                             $replica            = false,
@@ -49,6 +50,9 @@ plan autope(
     <% } -%>
     <% unless $instance_image == undef { -%>
     instance_image = "<%= $instance_image %>"
+    <% } -%>
+    <% unless stack == undef { -%>
+    stack_name = "<%= $stack %>"
     <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
