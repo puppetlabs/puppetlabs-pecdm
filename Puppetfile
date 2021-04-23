@@ -5,14 +5,12 @@ mod 'puppetlabs-stdlib', '7.0.0'
 mod 'puppetlabs-apply_helpers', '0.2.1'
 mod 'puppetlabs-bolt_shim', '0.3.2'
 mod 'puppetlabs-terraform', '0.6.1'
+mod 'WhatsARanjit-node_manager', '0.7.5'
 
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '985b8702f63dae664f983449dee17de01214bd0b'
-mod 'puppet-node_manager',
-    git: 'https://github.com/WhatsARanjit/puppet-node_manager.git',
-    ref: '3775a9d07bdea9a9258225dc7053118b1f2fd871'
+    ref: 'dab3f8e2106a8d134239f242c522b05cfc7f1f7f'
 
 # External non-Puppet content
 #
