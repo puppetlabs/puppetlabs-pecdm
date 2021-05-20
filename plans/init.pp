@@ -133,7 +133,7 @@ plan autope(
   case $architecture {
     'xlarge': {
       $base_params = {
-        'master_host'            => $inventory['server'][0]['name'],
+        'primary_host'            => $inventory['server'][0]['name'],
         'puppetdb_database_host' => $inventory['psql'][0]['name'],
         'compiler_hosts'         => $inventory['compiler'].map |$c| { $c['name'] },
         'console_password'       => $console_password,
@@ -143,7 +143,7 @@ plan autope(
       }
       if $replica {
         $params = merge($base_params, {
-          'master_replica_host'            => $inventory['server'][1]['name'],
+          'primary_replica_host'            => $inventory['server'][1]['name'],
           'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
         })
       } else {
@@ -152,7 +152,7 @@ plan autope(
     }
     'large': {
       $base_params = {
-        'master_host'           => $inventory['server'][0]['name'],
+        'primary_host'           => $inventory['server'][0]['name'],
         'compiler_hosts'        => $inventory['compiler'].map |$c| { $c['name'] },
         'console_password'      => $console_password,
         'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
@@ -161,7 +161,7 @@ plan autope(
       }
       if $replica {
         $params = merge($base_params, {
-          'master_replica_host' => $inventory['server'][1]['name'],
+          'primary_replica_host' => $inventory['server'][1]['name'],
         })
       } else {
         $params = $base_params
@@ -169,7 +169,7 @@ plan autope(
     }
     'standard': {
       $base_params = {
-        'master_host'           => $inventory['server'][0]['name'],
+        'primary_host'           => $inventory['server'][0]['name'],
         'console_password'      => $console_password,
         'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
         'compiler_pool_address' => $apply['pool']['value'],
@@ -177,7 +177,7 @@ plan autope(
       }
       if $replica {
         $params = merge($base_params, {
-          'master_replica_host' => $inventory['server'][1]['name'],
+          'primary_replica_host' => $inventory['server'][1]['name'],
         })
       } else {
         $params = $base_params
