@@ -64,7 +64,7 @@ Types of things you'll be paying your cloud provider for
 
 ### Parameter requirments
 
-Due to the creation of a elb load balancer (32 characters name limit) the project name can't be longer than 9 characters
+Due to the creation of an elb load balancer (32 characters name limit) using the aws provider the project name can't be longer than 9 characters.
 
 ### Example: params.json
 
