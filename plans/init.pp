@@ -24,7 +24,7 @@ plan autope(
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
   # Where r10k deploys our various Terraform modules for each cloud provider
-  $tf_dir = "ext/terraform/${provider}_pe_arch"
+  $tf_dir = ".terraform/${provider}_pe_arch"
 
   # Ensure the Terraform project directory has been initialized ahead of
   # attempting an apply

@@ -8,7 +8,7 @@ plan autope::upgrade(
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
-  $tf_dir = "ext/terraform/${provider}_pe_arch"
+  $tf_dir = ".terraform/${provider}_pe_arch"
 
   if $provider == 'aws' {
     waring('AWS provider is currently expiremental and may change in a future release')

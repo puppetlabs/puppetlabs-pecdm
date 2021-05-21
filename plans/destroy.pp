@@ -8,7 +8,7 @@ plan autope::destroy(
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
-  $tf_dir = "ext/terraform/${provider}_pe_arch"
+  $tf_dir = ".terraform/${provider}_pe_arch"
 
   $vars_template = @(TFVARS)
     <% unless $project == undef { -%>
