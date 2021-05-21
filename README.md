@@ -62,6 +62,10 @@ Types of things you'll be paying your cloud provider for
 
 ## Usage
 
+### Parameter requirments
+
+Due to the creation of a elb load balancer (32 characters name limit) the project name can't be longer than 9 characters
+
 ### Example: params.json
 
 The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user.
