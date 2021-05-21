@@ -10,7 +10,7 @@ mod 'WhatsARanjit-node_manager', '0.7.5'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'dab3f8e2106a8d134239f242c522b05cfc7f1f7f'
+    ref: 'SOLARCH-376'
 
 # External non-Puppet content
 #
