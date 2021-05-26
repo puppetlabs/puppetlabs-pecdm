@@ -24,7 +24,7 @@ mod 'puppetlabs-peadm',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          '9c544ba3a126e265f6a4832d37096f4719d996a6',
+    ref:          'a565f0def8361dffc7858c7ca925780bb9a4d1d6',
     install_path: '.terraform'
 
 mod 'terraform-aws_pe_arch',
