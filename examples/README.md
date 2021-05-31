@@ -4,7 +4,13 @@ If you are using MFA this sample script helps you to set the necessary environme
 
 ## Steps
 
-Make sure to install the required Python modules via `pip` ([boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#installation) and [argpase](https://pypi.org/project/argparse/))
+### Requirements
+
+* Python3
+* The script dependencies:
+    * Make sure to install the required Python modules via `pip` ([boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#installation) and [argpase](https://pypi.org/project/argparse/))
+
+### Setting the ENV vars
 
 To generate the environment variables run the `export-profile.py `python script, this will ask you to enter a MFA code:
 
@@ -23,5 +29,3 @@ export AWS_SESSION_TOKEN=<...>
 ```
 
 Now copy/paste the three lines from above and you will be set.
-
-
