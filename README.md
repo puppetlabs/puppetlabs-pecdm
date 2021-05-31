@@ -88,7 +88,8 @@ How to execute plan with **params.json**: `bolt plan run autope --params @params
 This can also be used to deploy PE's large architecture without a fail over replica on AWS
 
 ```
-$(export-profile.py development)
+$python3 export-profile.py development
+
 bolt plan run autope provider=aws architecture=standard
 ```
 
@@ -98,6 +99,8 @@ Please note that for bolt to authenticate to the AWS-provisioned VMs you need to
 $ eval `ssh-agent`
 $ ssh-add
 ```
+
+For more information about setting environment variables, please take a look at the detailed instructions on the [examples/README](examples/README.md) file
 
 ### Example: destroy GCP stack
 
