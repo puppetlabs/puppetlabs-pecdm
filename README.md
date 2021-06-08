@@ -46,7 +46,7 @@ Types of things you'll be paying your cloud provider for
 #### Deploying upon AWS
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Environment variables or Shared Credentials file Authentication Method](https://www.terraform.io/docs/providers/aws/index.html#authentication)
-* [If using MFA, a script to set environment variables](examples/export-profile.py)
+* [If using MFA, a script to set environment variables](scripts/aws_bastion_mfa_export.sh)
 
 #### Common Requirements
 * [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
@@ -100,7 +100,7 @@ $ eval `ssh-agent`
 $ ssh-add
 ```
 
-For more information about setting environment variables, please take a look at the detailed instructions on the [examples/README](examples/README.md) file
+For more information about setting environment variables, please take a look at the detailed instructions on the [scripts/README](scripts/README.md) file
 
 ### Example: destroy GCP stack
 
