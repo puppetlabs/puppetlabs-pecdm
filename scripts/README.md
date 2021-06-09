@@ -1,21 +1,53 @@
-# Export profile
+# Assuming roles
 
-If you are using MFA this sample script helps you to set the necessary environment variables
+In some organizations, your access to a cloud provider such as AWS (in this particular case) is done via bastion accounts or roles.
+
+This guide will help you set the config and credentials files in your machine to assume a role via a bash script. This sample script helps you authenticate, switch roles, and set the necessary environment variables.
 
 ## Steps
 
 ### Requirements
 
-### Requirements
-
+* [AWS CLI](https://aws.amazon.com/cli/)
 * JQ
     * `jq` is a command-line tool for parsing JSON
-    * If you are on MacOS you can install `jq` via Homebrew:
+    * If you are on MacOS you can install it via Homebrew:
 
     ```
     brew install jq
     ```
+
     * [Here you will find more information to download](https://stedolan.github.io/jq/download/) `jq` for your OS
+
+## AWS Config & Credentials
+
+Make sure to set your AWS account credentials under `~/.aws/credentials`. This script also expects you have added a profile on `~/.aws/config`
+
+It's worth noticing that you need to have [MFA enabled in your AWS account](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html) in order to assume roles.
+
+### ~/.aws/credentials
+
+You can create new API access keys in the AWS IAM service.
+
+```
+[default]
+aws_access_key_id = <insert-your-access-key-here>
+aws_secret_access_key = <insert-your-secret-key-here>
+```
+
+### ~/.aws/config
+
+Add the details of your profile
+
+```
+[default]
+region = eu-central-1
+
+[profile my-custom-profile]
+role_arn = arn:aws:iam::<account-id>:role/<role-name>
+source_profile = default
+mfa_serial = arn:aws:iam::<id>:mfa/<user-name>
+```
 
 ### Setting the ENV vars
 
