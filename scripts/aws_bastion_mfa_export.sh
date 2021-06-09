@@ -1,8 +1,15 @@
 #!/bin/bash
-while getopts p: flag
-do
-    case "${flag}" in
-        p) profile=${OPTARG};;
+
+if [ "$#" -eq 0 ]; then
+    printf 'no argument flags provided\n' >&2
+    exit 1
+fi
+
+while getopts ":p:" flag; do
+    case "$flag" in
+        p ) profile=${OPTARG};;
+        \? ) echo "Invalid option -$OPTARG" 1>&2; exit 1;;
+        : ) echo "Invalid option -$OPTARG requires argument" 1>&2; exit 1;;
     esac
 done
 
