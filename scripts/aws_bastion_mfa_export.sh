@@ -13,6 +13,10 @@ while getopts ":p:" flag; do
     esac
 done
 
+if [ -z ${profile} ]; then
+    echo "profile is required" >&2; exit 1
+fi
+
 echo "|_ Using profile flag: $profile";
 
 # Make sure we have a temporary token
