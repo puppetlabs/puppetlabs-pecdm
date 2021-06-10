@@ -88,7 +88,7 @@ How to execute plan with **params.json**: `bolt plan run autope --params @params
 This can also be used to deploy PE's large architecture without a fail over replica on AWS
 
 ```
-$python3 export-profile.py development
+source scripts/aws_bastion_mfa_export.sh -p development
 
 bolt plan run autope provider=aws architecture=standard
 ```
