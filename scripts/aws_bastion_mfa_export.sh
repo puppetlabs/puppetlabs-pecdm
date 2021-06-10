@@ -22,10 +22,10 @@ echo "|_ Using profile flag: $profile";
 # Make sure we have a temporary token
 # This will also request your MFA token if needed
 echo "|_ Requesting identity with profile $profile"
-aws sts get-caller-identity --profile $profile
+aws sts get-caller-identity --profile "$profile"
 
 cachedir=~/.aws/cli/cache
-creds_json=$(cat $cachedir/*json)
+creds_json=$(cat "$cachedir"/*json)
 
 AWS_ACCESS_KEY_ID=$(echo "$creds_json" | jq -r .Credentials.AccessKeyId)
 AWS_SECRET_ACCESS_KEY=$(echo "$creds_json" | jq -r .Credentials.SecretAccessKey)
