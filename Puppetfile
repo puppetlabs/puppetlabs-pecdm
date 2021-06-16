@@ -32,7 +32,7 @@ mod 'terraform-aws_pe_arch',
     ref:          'bbf10d9708c5b1876b22b586984ab55688e173ad',
     install_path: '.terraform'
 
-mod 'terraform-azure-pe_arch',
+mod 'terraform-azure_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-azure-pe_arch.git',
     ref:          'SOLARCH-352',
     install_path: '.terraform'
