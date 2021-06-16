@@ -3,7 +3,7 @@ plan autope::upgrade(
   String                               $version          = '2019.3.0',
   String                               $ssh_user,
   Enum['xlarge', 'large', 'starndard'] $architecture     = 'xlarge',
-  Enum['google', 'aws']                $provider         = 'google'
+  Enum['google', 'aws', 'azure']       $provider         = 'google'
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
