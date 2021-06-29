@@ -114,7 +114,7 @@ plan autope(
             'uri'  => 'public_ip',
           },
           'azure' => {
-            'fqdn' => 'public_dns',
+            'name' => 'fqdn',
             'uri'  => 'ip_address',
           }
         }
