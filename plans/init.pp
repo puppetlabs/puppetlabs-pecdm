@@ -102,7 +102,7 @@ plan autope(
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
-          'azure'  => "azurerm_linux_virtual_machine.${i}_public_ip",
+          'azure'  => "azurerm_public_ip.${i}_public_ip",
         },
         'target_mapping' => $provider ? {
           'google' => {
