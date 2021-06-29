@@ -102,15 +102,20 @@ plan autope(
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
+          'azure'  => "azurerm_linux_virtual_machine.${i}_public_ip",
         },
         'target_mapping' => $provider ? {
           'google' => {
             'name' => 'metadata.internalDNS',
             'uri'  => 'network_interface.0.access_config.0.nat_ip',
           },
-          'aws' => {
+          'aws'    => {
             'name' => 'public_dns',
             'uri'  => 'public_ip',
+          },
+          'azure' => {
+            'fqdn' => 'public_dns',
+            'uri'  => 'ip_address',
           }
         }
       })

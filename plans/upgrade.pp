@@ -32,6 +32,7 @@ plan autope::upgrade(
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
+          'azure'  => "azurerm_linux_virtual_machine.${i}_public_ip",
         },
         'target_mapping' => $provider ? {
           'google' => {
@@ -41,6 +42,10 @@ plan autope::upgrade(
           'aws' => {
             'name' => 'public_dns',
             'uri'  => 'public_ip',
+          },
+          'azure' => {
+            'fqdn' => 'public_dns',
+            'uri'  => 'ip_address',
           }
         }
       })
