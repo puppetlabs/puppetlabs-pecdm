@@ -134,17 +134,17 @@ plan autope(
     'xlarge': {
       $base_params = {
         'primary_host'            => $inventory['server'][0]['name'],
-        'puppetdb_database_host' => $inventory['psql'][0]['name'],
-        'compiler_hosts'         => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'       => $console_password,
-        'dns_alt_names'          => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'  => $apply['pool']['value'],
-        'version'                => $version
+        'primary_postgresql_host' => $inventory['psql'][0]['name'],
+        'compiler_hosts'          => $inventory['compiler'].map |$c| { $c['name'] },
+        'console_password'        => $console_password,
+        'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
+        'compiler_pool_address'   => $apply['pool']['value'],
+        'version'                 => $version
       }
       if $replica {
         $params = merge($base_params, {
-          'primary_replica_host'            => $inventory['server'][1]['name'],
-          'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
+          'replica_host'            => $inventory['server'][1]['name'],
+          'replica_postgresql_host' => $inventory['psql'][1]['name'],
         })
       } else {
         $params = $base_params
@@ -161,7 +161,7 @@ plan autope(
       }
       if $replica {
         $params = merge($base_params, {
-          'primary_replica_host' => $inventory['server'][1]['name'],
+          'replica_host' => $inventory['server'][1]['name'],
         })
       } else {
         $params = $base_params
@@ -177,7 +177,7 @@ plan autope(
       }
       if $replica {
         $params = merge($base_params, {
-          'primary_replica_host' => $inventory['server'][1]['name'],
+          'replica_host' => $inventory['server'][1]['name'],
         })
       } else {
         $params = $base_params
