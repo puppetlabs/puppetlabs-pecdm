@@ -188,7 +188,7 @@ plan autope(
 
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
-    run_plan('peadm::provision', $params + $extra_peadm_params)
+    run_plan('peadm::install', $params + $extra_peadm_params)
 
     if $node_count {
       # Annoying work around for AWS not setting the hostname we want. Doing this
