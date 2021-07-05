@@ -44,8 +44,8 @@ plan autope::upgrade(
             'uri'  => 'public_ip',
           },
           'azure' => {
-            'name' => 'fqdn',
-            'uri'  => 'ip_address',
+            'name' => 'tags.internal_fqdn',
+            'uri'  => 'tags.public_ip_address',
           }
         }
       })
