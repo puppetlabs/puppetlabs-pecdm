@@ -49,8 +49,8 @@ Types of things you'll be paying your cloud provider for
 * [If using MFA, a script to set environment variables](scripts/aws_bastion_mfa_export.sh)
 
 #### Deploying upon Azure
-* [Install the Azure CLI] (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-* [AZ Login] (https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure)
+* [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* [AZ Login](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure)
 #### Common Requirements
 * [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
 * [Git Installed](https://git-scm.com/downloads)
