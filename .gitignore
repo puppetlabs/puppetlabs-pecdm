@@ -21,13 +21,6 @@
 /vendor/
 /convert_report.txt
 /update_report.txt
-/src/
 .DS_Store
 .project
 .envrc
-/ext/
-/modules/
-/params.json
-.resource_types
-.rerun.json
-bolt-debug.log
