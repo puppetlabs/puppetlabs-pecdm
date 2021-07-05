@@ -109,8 +109,8 @@ plan autope(
             'name' => 'metadata.internalDNS',
             'uri'  => 'network_interface.0.access_config.0.nat_ip',
           },
-          'aws'    => {
-            'name' => 'public_dns',
+          'aws' => {
+            'name' => 'private_dns',
             'uri'  => 'public_ip',
           },
           'azure' => {
