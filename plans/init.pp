@@ -115,7 +115,7 @@ plan autope(
           },
           'azure' => {
             'name' => 'tags.internal_fqdn',
-            'uri'  => 'tags.public_ip_address',
+            'uri'  => 'public_ip_address',
           }
         }
       })
