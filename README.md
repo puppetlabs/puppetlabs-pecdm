@@ -15,7 +15,7 @@ Automatic Puppet Enterprise, a Bolt driven fusion of [puppetlabs/peadm](https://
 
 ## Description
 
-The autope Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure provisioning and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a Terraform module ([GCP](https://github.com/puppetlabs/terraform-google-pe_arch), [AWS](https://github.com/puppetlabs/terraform-aws-pe_arch)) to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ optional fail over replica.
+The autope Bolt project demonstrates how you can link together automation tools to take advantage of their strengths, e.g. Terraform for infrastructure provisioning and Puppet for infrastructure configuration. We take [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and a Terraform module ([GCP](https://github.com/puppetlabs/terraform-google-pe_arch), [AWS](https://github.com/puppetlabs/terraform-aws-pe_arch), [Azure](https://github.com/puppetlabs/terraform-azure-pe_arch)) to facilitate rapid and repeatable deployments of Puppet Enterprise built upon the Standard, Large or Extra Large architecture w/ optional fail over replica.
 
 ## Expectations and support
 
@@ -48,6 +48,9 @@ Types of things you'll be paying your cloud provider for
 * [Environment variables or Shared Credentials file Authentication Method](https://www.terraform.io/docs/providers/aws/index.html#authentication)
 * [If using MFA, a script to set environment variables](scripts/aws_bastion_mfa_export.sh)
 
+#### Deploying upon Azure
+* [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* [AZ Login](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure)
 #### Common Requirements
 * [Bolt Installed](https://puppet.com/docs/bolt/latest/bolt_installing.html)
 * [Git Installed](https://git-scm.com/downloads)

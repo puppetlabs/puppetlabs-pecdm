@@ -3,7 +3,7 @@ plan autope::upgrade(
   String                               $version          = '2019.3.0',
   String                               $ssh_user,
   Enum['xlarge', 'large', 'starndard'] $architecture     = 'xlarge',
-  Enum['google', 'aws']                $provider         = 'google'
+  Enum['google', 'aws', 'azure']       $provider         = 'google'
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
@@ -32,6 +32,7 @@ plan autope::upgrade(
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
+          'azure'  => "azurerm_linux_virtual_machine.${i}",
         },
         'target_mapping' => $provider ? {
           'google' => {
@@ -41,6 +42,10 @@ plan autope::upgrade(
           'aws' => {
             'name' => 'private_dns',
             'uri'  => 'public_ip',
+          },
+          'azure' => {
+            'name' => 'tags.internal_fqdn',
+            'uri'  => 'public_ip_address',
           }
         }
       })

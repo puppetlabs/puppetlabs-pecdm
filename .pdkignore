@@ -24,7 +24,6 @@
 .DS_Store
 .project
 .envrc
-/inventory.yaml
 /appveyor.yml
 /.fixtures.yml
 /Gemfile
@@ -32,6 +31,7 @@
 /.gitignore
 /.gitlab-ci.yml
 /.pdkignore
+/.puppet-lint.rc
 /Rakefile
 /rakelib/
 /.rspec
@@ -40,3 +40,5 @@
 /.yardopts
 /spec/
 /.vscode/
+/.sync.yml
+/.devcontainer/

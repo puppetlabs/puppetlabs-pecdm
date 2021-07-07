@@ -13,10 +13,10 @@ plan autope(
   Boolean                             $replica            = false,
   Boolean                             $stage              = false,
   # The final three parameters depend on the value of $provider, to do magic
-  Enum['google', 'aws']               $provider,
+  Enum['google', 'aws', 'azure']      $provider,
   String[1]                           $project            = $provider ? { 'aws' => 'ape', default => undef },
   String[1]                           $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
-  String[1]                           $cloud_region       = $provider ? { 'aws' => 'us-west-2', default => 'us-west1' },
+  String[1]                           $cloud_region       = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -102,6 +102,7 @@ plan autope(
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
+          'azure'  => "azurerm_linux_virtual_machine.${i}",
         },
         'target_mapping' => $provider ? {
           'google' => {
@@ -111,6 +112,10 @@ plan autope(
           'aws' => {
             'name' => 'private_dns',
             'uri'  => 'public_ip',
+          },
+          'azure' => {
+            'name' => 'tags.internal_fqdn',
+            'uri'  => 'public_ip_address',
           }
         }
       })
