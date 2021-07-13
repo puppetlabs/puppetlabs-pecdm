@@ -37,7 +37,7 @@ plan autope(
   # Quoting is important in a Terraform vars file so we take care in preserving
   # them and converting single quotes to double. Chose to use an inline_epp
   # instead of pure HEREDOC to allow for the use of conditionals
-  $vars_template = @(TFVARS)
+  $tfvars = inline_epp(@(TFVARS))
     project        = "<%= $project %>"
     user           = "<%= $ssh_user %>"
     <% unless $ssh_pub_key_file == undef { -%>
@@ -52,14 +52,15 @@ plan autope(
     instance_image = "<%= $instance_image %>"
     <% } -%>
     <% unless stack == undef { -%>
-    stack_name = "<%= $stack %>"
+    stack_name     = "<%= $stack %>"
     <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
     replica        = <%= $replica %>
-    |TFVARS
+    | TFVARS
 
-  $tfvars = inline_epp($vars_template)
+  # TODO: make this print only when user specifies --verbose
+  out::verbose(".tfvars file content:\n\n${tfvars}\n")
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time
@@ -190,6 +191,10 @@ plan autope(
     }
     default: { fail('Something went horribly wrong') }
   }
+
+  # TODO: make this print only when user specifies --verbose
+  $peadm_install_params = $params + $extra_peadm_params
+  out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
 
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
