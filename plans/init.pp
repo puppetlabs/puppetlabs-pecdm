@@ -60,7 +60,7 @@ plan autope(
     | TFVARS
 
   # TODO: make this print only when user specifies --verbose
-  out::message(".tfvars file content:\n\n${tfvars}\n")
+  out::verbose(".tfvars file content:\n\n${tfvars}\n")
 
   # Creating an on-disk tfvars file to be used by Terraform::Apply to avoid a
   # shell escaping issue I couldn't pin down in a reasonable amount of time
@@ -194,7 +194,7 @@ plan autope(
 
   # TODO: make this print only when user specifies --verbose
   $peadm_install_params = $params + $extra_peadm_params
-  out::message("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
+  out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
 
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
