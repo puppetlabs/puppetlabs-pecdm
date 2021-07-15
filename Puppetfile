@@ -6,6 +6,7 @@ mod 'puppetlabs-apply_helpers', '0.2.1'
 mod 'puppetlabs-bolt_shim', '0.3.2'
 mod 'puppetlabs-terraform', '0.6.1'
 mod 'WhatsARanjit-node_manager', '0.7.5'
+mod 'nwops-debug', '0.2.0'
 
 # Modules from Git
 mod 'puppetlabs-peadm',
