@@ -2,7 +2,7 @@ plan autope::upgrade(
   TargetSpec                           $targets          = get_targets('peadm_nodes'),
   String                               $version          = '2019.3.0',
   String                               $ssh_user,
-  Enum['xlarge', 'large', 'starndard'] $architecture     = 'xlarge',
+  Enum['xlarge', 'large', 'standard']  $architecture     = 'xlarge',
   Enum['google', 'aws', 'azure']       $provider         = 'google'
 ) {
 
