@@ -127,6 +127,7 @@ plan autope(
   # them to the peadm_nodes group and agent_nodes
   $inventory.each |$k, $v| { $v.each |$target| {
     Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
+    wait_until_available($target['name'], wait_time => 300)
   }}
 
   $inventory['node'].each |$target| {
