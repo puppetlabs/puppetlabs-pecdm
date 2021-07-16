@@ -126,12 +126,11 @@ plan autope(
   # Create and Target objects from our previously generated inventory and add
   # them to the peadm_nodes group and agent_nodes
   $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
-    wait_until_available($target['name'], wait_time => 300)
+    Target.new($target.merge($target_config)).add_to_group('new_nodes')
   }}
 
   $inventory['node'].each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('agent_nodes')
+    Target.new($target.merge($target_config)).add_to_group('new_agent_nodes')
   }
 
   # Generate a parameters list to be fed to puppetlabs/peadm based on which
@@ -197,6 +196,8 @@ plan autope(
   $peadm_install_params = $params + $extra_peadm_params
   out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
 
+  wait_until_available('new_nodes', wait_time => 300)
+
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
     run_plan('peadm::install', $params + $extra_peadm_params)
@@ -207,7 +208,7 @@ plan autope(
       # this issue from within Terraform but could not come up with clean solution
       # without further discovery, Bolt's a good hammer
       if $provider == 'aws' {
-        get_targets('agent_nodes').parallelize |$a| {
+        get_targets('new_agent_nodes').parallelize |$a| {
           run_task('peadm::agent_install', $a, {
             'server' => $apply['pool']['value'],
             'install_flags' => ["agent:certname=${a.name}"]
@@ -215,9 +216,9 @@ plan autope(
           )
         }
       } else {
-        run_task('peadm::agent_install', get_targets('agent_nodes'), { 'server' => $apply['pool']['value'] })
+        run_task('peadm::agent_install', get_targets('new_agent_nodes'), { 'server' => $apply['pool']['value'] })
       }
-      run_task('peadm::sign_csr', $inventory['server'][0]['name'], { 'certnames' => get_targets('agent_nodes').map |$a| { $a.name }  })
+      run_task('peadm::sign_csr', $inventory['server'][0]['name'], { 'certnames' => get_targets('new_agent_nodes').map |$a| { $a.name }  })
     }
   }
 
