@@ -134,62 +134,20 @@ plan autope(
   }
 
   # Generate a parameters list to be fed to puppetlabs/peadm based on which
-  # architecture we've chosen to deploy. The default case should never be
-  # reached since any architecture has been previously validated.
-  case $architecture {
-    'xlarge': {
-      $base_params = {
-        'primary_host'            => $inventory['server'][0]['name'],
-        'primary_postgresql_host' => $inventory['psql'][0]['name'],
-        'compiler_hosts'          => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'        => $console_password,
-        'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'   => $apply['pool']['value'],
-        'version'                 => $version
-      }
-      if $replica {
-        $params = merge($base_params, {
-          'replica_host'            => $inventory['server'][1]['name'],
-          'replica_postgresql_host' => $inventory['psql'][1]['name'],
-        })
-      } else {
-        $params = $base_params
-      }
-    }
-    'large': {
-      $base_params = {
-        'primary_host'           => $inventory['server'][0]['name'],
-        'compiler_hosts'        => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'      => $console_password,
-        'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address' => $apply['pool']['value'],
-        'version'               => $version
-      }
-      if $replica {
-        $params = merge($base_params, {
-          'replica_host' => $inventory['server'][1]['name'],
-        })
-      } else {
-        $params = $base_params
-      }
-    }
-    'standard': {
-      $base_params = {
-        'primary_host'           => $inventory['server'][0]['name'],
-        'console_password'      => $console_password,
-        'dns_alt_names'         => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address' => $apply['pool']['value'],
-        'version'               => $version
-      }
-      if $replica {
-        $params = merge($base_params, {
-          'replica_host' => $inventory['server'][1]['name'],
-        })
-      } else {
-        $params = $base_params
-      }
-    }
-    default: { fail('Something went horribly wrong') }
+  # architecture we've chosen to deploy. PEAdm will figure out the correct
+  # thing to do based on whether or not there are valid values for each
+  # architecture component. An empty array is equivalent to not defining the
+  # parameter.
+  $params = {
+    'primary_host'            => getvar('inventory.server.0.name'),
+    'primary_postgresql_host' => getvar('inventory.psql.0.name'),
+    'replica_host'            => getvar('inventory.server.1.name'),
+    'replica_postgresql_host' => getvar('inventory.psql.1.name'),
+    'compiler_hosts'          => [getvar('inventory.compiler')].autope::compact().map |$c| { $c['name'] },
+    'console_password'        => $console_password,
+    'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
+    'compiler_pool_address'   => $apply['pool']['value'],
+    'version'                 => $version
   }
 
   # TODO: make this print only when user specifies --verbose
