@@ -147,6 +147,7 @@ plan autope(
     'console_password'        => $console_password,
     'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
     'compiler_pool_address'   => $apply['pool']['value'],
+    'download_mode'           => 'direct',
     'version'                 => $version
   }
 
