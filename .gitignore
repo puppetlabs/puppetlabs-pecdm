@@ -31,3 +31,4 @@
 .task_cache.json
 .terraform/
 bolt-debug.log
+.rerun.json
