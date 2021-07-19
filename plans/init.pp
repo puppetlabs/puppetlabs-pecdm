@@ -143,7 +143,7 @@ plan autope(
     'primary_postgresql_host' => getvar('inventory.psql.0.name'),
     'replica_host'            => getvar('inventory.server.1.name'),
     'replica_postgresql_host' => getvar('inventory.psql.1.name'),
-    'compiler_hosts'          => getvar('inventory.compiler').autope::compact().map |$c| { $c['name'] },
+    'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
     'console_password'        => $console_password,
     'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
     'compiler_pool_address'   => $apply['pool']['value'],
