@@ -53,16 +53,8 @@ plan autope::upgrade(
     Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   }}
 
-  $params = {
-    'primary_host'            => getvar('inventory.server.0.name'),
-    'primary_postgresql_host' => getvar('inventory.psql.0.name'),
-    'replica_host'            => getvar('inventory.server.1.name'),
-    'replica_postgresql_host' => getvar('inventory.psql.1.name'),
-    'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
-    'compiler_pool_address'   => $terraform_output['pool']['value'],
-    'download_mode'           => 'direct',
-    'version'                 => $version
-  }
+  $compiler_pool_adress = $terraform_output['pool']['value']
+  $params = autope::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)
 
   out::verbose("params var content:\n\n${params}\n")
 
