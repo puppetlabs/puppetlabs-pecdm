@@ -1,7 +1,7 @@
 plan autope::upgrade(
-  String                               $version             = '2021.0.0',
+  String                               $version             = '2021.2.0',
   Integer                              $compiler_count      = 1,
-  Enum['google', 'aws', 'azure']       $provider            = 'aws',
+  Enum['google', 'aws', 'azure']       $provider,
   String[1]                            $ssh_user            = $provider ? { 'aws' => 'centos', default => undef },
 ) {
 
@@ -9,8 +9,7 @@ plan autope::upgrade(
 
   $tf_dir = ".terraform/${provider}_pe_arch"
 
-  $terraform_output = run_task('terraform::output', 'localhost', dir => $tf_dir)
-  $applied = $terraform_output.first
+  $terraform_output = run_task('terraform::output', 'localhost', dir => $tf_dir).first
 
   $target_config = {
     'config' => {
@@ -60,7 +59,7 @@ plan autope::upgrade(
     'replica_host'            => getvar('inventory.server.1.name'),
     'replica_postgresql_host' => getvar('inventory.psql.1.name'),
     'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
-    'compiler_pool_address'   => $applied['pool']['value'],
+    'compiler_pool_address'   => $terraform_output['pool']['value'],
     'download_mode'           => 'direct',
     'version'                 => $version
   }
