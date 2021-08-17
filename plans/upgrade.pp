@@ -1,18 +1,15 @@
 plan autope::upgrade(
-  TargetSpec                           $targets          = get_targets('peadm_nodes'),
-  String                               $version          = '2019.3.0',
-  String                               $ssh_user,
-  Enum['xlarge', 'large', 'standard']  $architecture     = 'xlarge',
-  Enum['google', 'aws', 'azure']       $provider         = 'google'
+  String                               $version             = '2021.2.0',
+  Integer                              $compiler_count      = 1,
+  Enum['google', 'aws', 'azure']       $provider,
+  String[1]                            $ssh_user            = $provider ? { 'aws' => 'centos', default => undef },
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
   $tf_dir = ".terraform/${provider}_pe_arch"
 
-  if $provider == 'aws' {
-    waring('AWS provider is currently expiremental and may change in a future release')
-  }
+  $terraform_output = run_task('terraform::output', 'localhost', dir => $tf_dir).first
 
   $target_config = {
     'config' => {
@@ -25,7 +22,7 @@ plan autope::upgrade(
     }
   }
 
-  $inventory = ['master', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
+  $inventory = ['server', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
@@ -56,41 +53,10 @@ plan autope::upgrade(
     Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   }}
 
-  case $architecture {
-    'xlarge': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'master_replica_host'            => $inventory['master'][1]['name'],
-        'puppetdb_database_host'         => $inventory['psql'][0]['name'],
-        'puppetdb_database_replica_host' => $inventory['psql'][1]['name'],
-        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
-      }
-    }
-    'large': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'compiler_hosts'                 => $inventory['compiler'].map |$c| { $c['name'] },
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
-      }
-    }
-    'standard': {
-      $params = {
-        'master_host'                    => $inventory['master'][0]['name'],
-        'console_password'               => $console_password,
-        'dns_alt_names'                  => [ 'puppet', $apply['pool']['value'] ],
-        'compiler_pool_address'          => $apply['pool']['value'],
-        'version'                        => $version
-      }
-    }
-    default: { fail('Something went horribly wrong or only xlarge is supported in this configuration') }
-  }
+  $compiler_pool_adress = $terraform_output['pool']['value']
+  $params = autope::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)
+
+  out::verbose("params var content:\n\n${params}\n")
 
   # Once all the infrastructure data has been collected, peadm takes over
   run_plan('peadm::upgrade', $params)
