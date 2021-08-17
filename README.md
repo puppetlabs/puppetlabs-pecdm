@@ -2,7 +2,7 @@
 
 Automatic Puppet Enterprise, a Bolt driven fusion of [puppetlabs/peadm](https://github.com/puppetlabs/puppetlabs-peadm) and Terraform.
 
-#### Table of Contents
+**Table of Contents**
 
 1. [Description](#description)
 2. [Setup - The basics of getting started with autope](#setup)
@@ -56,7 +56,7 @@ Types of things you'll be paying your cloud provider for
 * [Git Installed](https://git-scm.com/downloads)
 * [Terraform Installed](https://www.terraform.io/downloads.html)
 
-### Beginning with autope
+## Beginning with autope
 
 1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-autope.git && cd puppetlabs-autope`
 2. Install module dependencies: `bolt module install --no-resolve` (manually manages modules to take advantage of functionality that allows for additional content to be deployed that does not adhere to the Puppet Module packaging format, e.g. Terraform modules)
@@ -65,11 +65,11 @@ Types of things you'll be paying your cloud provider for
 
 ## Usage
 
-### Parameter requirments
+**Parameter requirements**
 
 Due to the creation of an elb load balancer (32 characters name limit) using the aws provider the project name can't be longer than 9 characters.
 
-### Example: params.json
+**Example: params.json**
 
 The command line will likely serve most uses of **autope** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user.
 
@@ -86,7 +86,9 @@ The command line will likely serve most uses of **autope** but if you wish to pa
 
 How to execute plan with **params.json**: `bolt plan run autope --params @params.json`
 
-### Example: deploy standard architecture on AWS with the developer role using a MFA enabled user
+### Deploying examples
+
+#### Deploy standard architecture on AWS with the developer role using a MFA enabled user
 
 This can also be used to deploy PE's large architecture without a fail over replica on AWS
 
@@ -105,17 +107,25 @@ $ ssh-add
 
 For more information about setting environment variables, please take a look at the detailed instructions on the [scripts/README](scripts/README.md) file
 
-### Example: destroy GCP stack
+### Destroying examples
+
+#### Destroy GCP stack
 
 The number of options required are reduced when destroying a stack
 
 `bolt plan run autope::destroy provider=google`
 
-### Example: destroy AWS stack
+#### Destroy AWS stack
 
 The number of options required are reduced when destroying a stack
 
 `bolt plan run autope::destroy provider=aws`
+
+### Upgrading examples
+
+#### Upgrade a AWS stack
+
+`bolt plan run autope::upgrade provider=aws ssh_user=centos version=2021.1.0`
 
 ## Limitations
 
