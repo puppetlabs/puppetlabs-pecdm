@@ -13,6 +13,10 @@ plan pecdm::destroy(
 
   $tf_dir = ".terraform/${provider}_pe_arch"
 
+  # Ensure the Terraform project directory has been initialized ahead of
+  # attempting a destroy
+  run_task('terraform::initialize', 'localhost', dir => $tf_dir)
+
   $vars_template = @(TFVARS)
     <% unless $project == undef { -%>
     project        = "<%= $project %>"
