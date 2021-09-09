@@ -162,22 +162,26 @@ plan autope(
     run_plan('peadm::install', $params + $extra_peadm_params)
 
     if $node_count {
-      # Annoying work around for AWS not setting the hostname we want. Doing this
-      # only for AWS to keep concurrency when doing GCP and would prefer to solve
-      # this issue from within Terraform but could not come up with clean solution
-      # without further discovery, Bolt's a good hammer
-      if $provider == 'aws' {
-        parallelize($agent_targets) |$a| {
-          run_task('peadm::agent_install', $a, {
-            'server' => $apply['pool']['value'],
-            'install_flags' => ["agent:certname=${a.name}"]
-            }
-          )
-        }
-      } else {
-        run_task('peadm::agent_install', $agent_targets, { 'server' => $apply['pool']['value'] })
+      parallelize($agent_targets) |$target| {
+        run_task('peadm::agent_install', $target,
+          'server' => $apply['pool']['value'],
+          'install_flags' => [
+            '--puppet-service-ensure', 'stopped',
+            "agent:certname=${target.name}",
+          ],
+        )
+
+        run_task('peadm::submit_csr', $target)
       }
-      run_task('peadm::sign_csr', $inventory['server'][0]['name'], { 'certnames' => $agent_targets.map |$a| { $a.name }  })
+
+      run_task('peadm::sign_csr', $inventory['server'][0]['name'],
+        'certnames' => $agent_targets.map |$a| { $a.name },
+      )
+
+      run_task('service', $agent_targets,
+        name   => 'puppet',
+        action => 'start',
+      )
     }
   }
 
