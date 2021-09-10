@@ -4,6 +4,7 @@ plan autope::destroy(
   String[1]                        $project          = $provider ? { 'aws' => 'ape', default => 'oppenheimer' },
   String[1]                        $ssh_user         = $provider ? { 'aws' => 'centos', default => 'oppenheimer' },
   String[1]                        $cloud_region     = $provider ? { 'azure' => 'westus2' ,'aws' => 'us-west-2', default => 'us-west1' },
+  Optional[String[1]]              $ssh_pub_key_file = undef,
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
@@ -18,6 +19,9 @@ plan autope::destroy(
     region        = "<%= $cloud_region %>"
     <% } -%>
     user           = "<%= $ssh_user %>"
+    <% unless $ssh_pub_key_file == undef { -%>
+    ssh_key        = "<%= $ssh_pub_key_file %>"
+    <% } -%>
     <% if $provider == 'google' { -%>
     destroy        = true
     <% } -%>
