@@ -164,6 +164,7 @@ plan autope(
             'name' => 'https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm',
             'provider' => 'rpm'
             }
+          )
           run_task('package', $a, {
             'action' => 'install',
             'name' => 'omi'
