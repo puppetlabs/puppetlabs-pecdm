@@ -156,6 +156,23 @@ plan autope(
   out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
 
   wait_until_available($autope_targets, wait_time => 300)
+  # This is a temporary fix and should be removed as soon as MS resolve the OMI issue
+  if $provider == 'azure' {
+    parallelize($autope_targets) |$a| {
+          run_task('package', $a, {
+            'action' => 'install',
+            'name' => 'https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm',
+            'provider' => 'rpm'
+            }
+          )
+          run_task('package', $a, {
+            'action' => 'install',
+            'name' => 'omi'
+            }
+          )
+        }
+  }
+
 
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
