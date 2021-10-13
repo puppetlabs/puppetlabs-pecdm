@@ -1,4 +1,6 @@
-plan autope(
+# @summary Provision new PE cluster to The Cloud
+#
+plan pecdm::provision(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard'] $architecture       = 'standard',
   String[1]                           $version            = '2019.8.5',
@@ -67,7 +69,7 @@ plan autope(
   #
   # with_tempfile_containing() custom function suggestion by Cas is brilliant
   # for this, works perfectly
-  $apply = autope::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
+  $apply = pecdm::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptable for use with multiple cloud providers
@@ -125,7 +127,7 @@ plan autope(
 
   # Create and Target objects from our previously generated inventory and add
   # them to the peadm_nodes group and agent_nodes
-  $autope_targets = $inventory.map |$_, $v| { $v.map |$target| {
+  $pecdm_targets = $inventory.map |$_, $v| { $v.map |$target| {
     Target.new($target.merge($target_config))
   }}.flatten
 
@@ -155,7 +157,7 @@ plan autope(
   $peadm_install_params = $params + $extra_peadm_params
   out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
 
-  wait_until_available($autope_targets, wait_time => 300)
+  wait_until_available($pecdm_targets, wait_time => 300)
 
   unless $stage {
     # Once all the infrastructure data has been collected, handoff to puppetlabs/peadm
