@@ -1,4 +1,6 @@
-plan autope::upgrade(
+# @summary Upgrade a pecdm provisioned cluster
+#
+plan pecdm::upgrade(
   String                               $version             = '2021.2.0',
   Integer                              $compiler_count      = 1,
   Enum['google', 'aws', 'azure']       $provider,
@@ -54,7 +56,7 @@ plan autope::upgrade(
   }}
 
   $compiler_pool_adress = $terraform_output['pool']['value']
-  $params = autope::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)
+  $params = pecdm::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)
 
   out::verbose("params var content:\n\n${params}\n")
 

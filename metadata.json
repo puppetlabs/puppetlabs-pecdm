@@ -1,10 +1,10 @@
 {
-  "name": "puppetlabs-autope",
+  "name": "puppetlabs-pecdm",
   "version": "0.1.0",
   "author": "Cody Herriges",
   "summary": "Automatic Puppet Enterprise, a Bolt driven fusion of peadm and teraform",
   "license": "Apache-2.0",
-  "source": "https://github.com/puppetlabs/puppetlabs-autope",
+  "source": "https://github.com/puppetlabs/puppetlabs-pecdm",
   "dependencies": [
 
   ],

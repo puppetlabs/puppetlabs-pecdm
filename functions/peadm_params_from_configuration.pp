@@ -4,7 +4,7 @@
 # architecture component. An empty array is equivalent to not defining the
 # parameter.
 
-function autope::peadm_params_from_configuration(
+function pecdm::peadm_params_from_configuration(
   Hash $inventory,
   String $compiler_pool_adress,
   String $version,

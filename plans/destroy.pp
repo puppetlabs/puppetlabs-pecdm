@@ -1,4 +1,6 @@
-plan autope::destroy(
+# @summary Destroy a pecdm provisioned PE cluster
+#
+plan pecdm::destroy(
   TargetSpec                       $targets          = get_targets('peadm_nodes'),
   Enum['google', 'aws', 'azure']   $provider         = 'google',
   String[1]                        $project          = $provider ? { 'aws' => 'ape', default => 'oppenheimer' },
@@ -29,7 +31,7 @@ plan autope::destroy(
 
   $tfvars = inline_epp($vars_template)
 
-  autope::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
+  pecdm::with_tempfile_containing('', $tfvars, '.tfvars') |$tfvars_file| {
     # Stands up our cloud infrastructure that we'll install PE onto, returning a
     # specific set of data via TF outputs that if replicated will make this plan
     # easily adaptable for use with multiple cloud providers
