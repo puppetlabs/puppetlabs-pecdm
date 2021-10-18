@@ -63,7 +63,7 @@ Types of things you'll be paying your cloud provider for
 
 1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-pecdm.git && cd puppetlabs-pecdm`
 2. Install module dependencies: `bolt module install --no-resolve` (manually manages modules to take advantage of functionality that allows for additional content to be deployed that does not adhere to the Puppet Module packaging format, e.g. Terraform modules)
-3. Run plan: `bolt plan run pecdm project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
+3. Run plan: `bolt plan run pecdm::provision project=example ssh_user=john.doe firewall_allow='[ "0.0.0.0/0" ]'`
 4. Wait. This is best executed from a bastion host or alternatively, a fast connection with strong upload bandwidth
 
 ## Usage
@@ -87,7 +87,7 @@ The command line will likely serve most uses of **pecdm** but if you wish to pas
 }
 ```
 
-How to execute plan with **params.json**: `bolt plan run pecdm --params @params.json`
+How to execute plan with **params.json**: `bolt plan run pecdm::provision --params @params.json`
 
 ### Deploying examples
 
