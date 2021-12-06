@@ -3,6 +3,7 @@
 plan pecdm::provision(
   TargetSpec                          $targets            = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard'] $architecture       = 'standard',
+  Enum['development', 'production', 'user'] $mode         = 'development',
   String[1]                           $version            = '2019.8.5',
   String[1]                           $console_password   = 'puppetlabs',
   Integer                             $compiler_count     = 1,
@@ -58,6 +59,7 @@ plan pecdm::provision(
     <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture   = "<%= $architecture %>"
+    mode           = "<%= $mode %>"
     replica        = <%= $replica %>
     | TFVARS
 
