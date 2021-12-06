@@ -1,25 +1,25 @@
 # @summary Provision new PE cluster to The Cloud
 #
 plan pecdm::provision(
-  TargetSpec                          $targets            = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard'] $architecture       = 'standard',
-  Enum['development', 'production', 'user'] $mode         = 'development',
-  String[1]                           $version            = '2019.8.5',
-  String[1]                           $console_password   = 'puppetlabs',
-  Integer                             $compiler_count     = 1,
-  Optional[String[1]]                 $ssh_pub_key_file   = undef,
-  Optional[Integer]                   $node_count         = undef,
-  Optional[String[1]]                 $instance_image     = undef,
-  Optional[String[1]]                 $stack              = undef,
-  Array                               $firewall_allow     = [],
-  Hash                                $extra_peadm_params = {},
-  Boolean                             $replica            = false,
-  Boolean                             $stage              = false,
+  TargetSpec                                $targets            = get_targets('peadm_nodes'),
+  Enum['xlarge', 'large', 'standard']       $architecture       = 'standard',
+  Enum['development', 'production', 'user'] $cluster_profile    = 'development',
+  String[1]                                 $version            = '2019.8.5',
+  String[1]                                 $console_password   = 'puppetlabs',
+  Integer                                   $compiler_count     = 1,
+  Optional[String[1]]                       $ssh_pub_key_file   = undef,
+  Optional[Integer]                         $node_count         = undef,
+  Optional[String[1]]                       $instance_image     = undef,
+  Optional[String[1]]                       $stack              = undef,
+  Array                                     $firewall_allow     = [],
+  Hash                                      $extra_peadm_params = {},
+  Boolean                                   $replica            = false,
+  Boolean                                   $stage              = false,
   # The final three parameters depend on the value of $provider, to do magic
-  Enum['google', 'aws', 'azure']      $provider,
-  String[1]                           $project            = $provider ? { 'aws' => 'ape', default => undef },
-  String[1]                           $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
-  String[1]                           $cloud_region       = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
+  Enum['google', 'aws', 'azure']            $provider,
+  String[1]                                 $project            = $provider ? { 'aws' => 'ape', default => undef },
+  String[1]                                 $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
+  String[1]                                 $cloud_region       = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -41,26 +41,26 @@ plan pecdm::provision(
   # them and converting single quotes to double. Chose to use an inline_epp
   # instead of pure HEREDOC to allow for the use of conditionals
   $tfvars = inline_epp(@(TFVARS))
-    project        = "<%= $project %>"
-    user           = "<%= $ssh_user %>"
+    project         = "<%= $project %>"
+    user            = "<%= $ssh_user %>"
     <% unless $ssh_pub_key_file == undef { -%>
-    ssh_key        = "<%= $ssh_pub_key_file %>"
+    ssh_key         = "<%= $ssh_pub_key_file %>"
     <% } -%>
-    region         = "<%= $cloud_region %>"
-    compiler_count = <%= $compiler_count %>
+    region          = "<%= $cloud_region %>"
+    compiler_count  = <%= $compiler_count %>
     <% unless $node_count == undef { -%>
-    node_count     = "<%= $node_count %>"
+    node_count      = "<%= $node_count %>"
     <% } -%>
     <% unless $instance_image == undef { -%>
-    instance_image = "<%= $instance_image %>"
+    instance_image  = "<%= $instance_image %>"
     <% } -%>
     <% unless stack == undef { -%>
-    stack_name     = "<%= $stack %>"
+    stack_name      = "<%= $stack %>"
     <% } -%>
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
-    architecture   = "<%= $architecture %>"
-    mode           = "<%= $mode %>"
-    replica        = <%= $replica %>
+    architecture    = "<%= $architecture %>"
+    cluster_profile = "<%= $cluster_profile %>"
+    replica         = <%= $replica %>
     | TFVARS
 
   # TODO: make this print only when user specifies --verbose
