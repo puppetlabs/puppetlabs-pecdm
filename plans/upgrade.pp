@@ -36,15 +36,15 @@ plan pecdm::upgrade(
         'target_mapping' => $provider ? {
           'google' => {
             'name' => 'metadata.internalDNS',
-            'uri'  => 'network_interface.0.access_config.0.nat_ip',
+            'uri'  => getvar('apply.ip_path.value', 'network_interface.0.access_config.0.nat_ip'),
           },
           'aws' => {
             'name' => 'private_dns',
-            'uri'  => 'public_ip',
+            'uri'  => getvar('apply.ip_path.value', 'public_ip'),
           },
           'azure' => {
             'name' => 'tags.internal_fqdn',
-            'uri'  => 'public_ip_address',
+            'uri'  => getvar('apply.ip_path.value', 'public_ip_address'),
           }
         }
       })
