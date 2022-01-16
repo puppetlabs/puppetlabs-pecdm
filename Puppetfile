@@ -10,7 +10,7 @@ mod 'WhatsARanjit-node_manager', '0.7.5'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'v3.0.1'
+    ref: 'v3.3.0'
 
 # External non-Puppet content
 #
