@@ -4,7 +4,7 @@ plan pecdm::provision(
   TargetSpec                                $targets            = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard']       $architecture       = 'standard',
   Enum['development', 'production', 'user'] $cluster_profile    = 'development',
-  String[1]                                 $version            = '2019.8.5',
+  String[1]                                 $version            = '2019.8.10',
   String[1]                                 $console_password   = 'puppetlabs',
   Integer                                   $compiler_count     = 1,
   Optional[String[1]]                       $ssh_pub_key_file   = undef,

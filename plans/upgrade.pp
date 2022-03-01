@@ -1,15 +1,19 @@
 # @summary Upgrade a pecdm provisioned cluster
 #
 plan pecdm::upgrade(
-  String                               $version             = '2021.2.0',
-  Integer                              $compiler_count      = 1,
-  Enum['google', 'aws', 'azure']       $provider,
-  String[1]                            $ssh_user            = $provider ? { 'aws' => 'centos', default => undef },
+  String[1]                                 $version            = '2021.5.0',
+  Hash                                      $extra_peadm_params = {},
+  # The final three parameters depend on the value of $provider, to do magic
+  Enum['google', 'aws', 'azure']            $provider,
+  String[1]                                 $project            = $provider ? { 'aws' => 'ape', default => undef },
+  String[1]                                 $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
 ) {
 
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
 
   $tf_dir = ".terraform/${provider}_pe_arch"
+
+  run_command("cd ${tf_dir} && terraform refresh", 'localhost')
 
   $terraform_output = run_task('terraform::output', 'localhost', dir => $tf_dir).first
 
@@ -51,15 +55,17 @@ plan pecdm::upgrade(
     }
   }
 
-  $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
-  }}
+  $pecdm_targets = $inventory.map |$_, $v| { $v.map |$target| {
+    Target.new($target.merge($target_config))
+  }}.flatten
 
-  $compiler_pool_adress = $terraform_output['pool']['value']
-  $params = pecdm::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)
+  wait_until_available($pecdm_targets, wait_time => 300)
+
+  $compiler_pool_address = $terraform_output['pool']['value']
+  $params = pecdm::peadm_params_from_configuration($inventory, $compiler_pool_address, $version)
 
   out::verbose("params var content:\n\n${params}\n")
 
   # Once all the infrastructure data has been collected, peadm takes over
-  run_plan('peadm::upgrade', $params)
+  run_plan('peadm::upgrade', $params + $extra_peadm_params)
 }

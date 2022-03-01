@@ -6,7 +6,7 @@
 
 function pecdm::peadm_params_from_configuration(
   Hash $inventory,
-  String $compiler_pool_adress,
+  String $compiler_pool_address,
   String $version,
 ) >> Hash {
   {
@@ -15,9 +15,7 @@ function pecdm::peadm_params_from_configuration(
     'replica_host'            => getvar('inventory.server.1.name'),
     'replica_postgresql_host' => getvar('inventory.psql.1.name'),
     'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
-    'dns_alt_names'           => [ 'puppet', $compiler_pool_adress ],
-    'compiler_pool_address'   => $compiler_pool_adress,
-    'download_mode'           => 'direct',
+    'compiler_pool_address'   => $compiler_pool_address,
     'version'                 => $version
   }
 }
