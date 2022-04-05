@@ -1,27 +1,43 @@
 # @summary Provision new PE cluster to The Cloud
 #
 plan pecdm::provision(
-  TargetSpec                                $targets              = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard']       $architecture         = 'standard',
-  Enum['development', 'production', 'user'] $cluster_profile      = 'development',
-  String[1]                                 $version              = '2019.8.5',
-  String[1]                                 $console_password     = 'puppetlabs',
-  Integer                                   $compiler_count       = 1,
-  Optional[String[1]]                       $ssh_pub_key_file     = undef,
-  Optional[Integer]                         $node_count           = undef,
-  Optional[String[1]]                       $instance_image       = undef,
-  Optional[String[1]]                       $stack                = undef,
-  Array                                     $firewall_allow       = [],
-  Hash                                      $extra_peadm_params   = {},
-  Hash                                      $extra_terraform_vars = {},
-  Boolean                                   $replica              = false,
-  Boolean                                   $stage                = false,
+  TargetSpec                                    $targets              = get_targets('peadm_nodes'),
+  Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
+  Enum['development', 'production', 'user']     $cluster_profile      = 'development',
+  String[1]                                     $version              = '2019.8.10',
+  String[1]                                     $console_password     = 'puppetlabs',
+  Integer                                       $compiler_count       = 1,
+  Optional[String[1]]                           $ssh_pub_key_file     = undef,
+  Optional[Integer]                             $node_count           = undef,
+  Optional[String[1]]                           $instance_image       = undef,
+  Optional[String[1]]                           $stack                = undef,
+  Optional[Variant[String[1],Array[String[1]]]] $subnetwork           = undef,
+  Optional[String[1]]                           $subnetwork_project   = undef,
+  Enum['private', 'public']                     $ssh_ip_mode          = 'public',
+  Enum['private', 'public']                     $lb_ip_mode           = 'public',
+  Array                                         $firewall_allow       = [],
+  Hash                                          $extra_peadm_params   = {},
+  Hash                                          $extra_terraform_vars = {},
+  Boolean                                       $replica              = false,
+  Boolean                                       $stage                = false,
   # The final three parameters depend on the value of $provider, to do magic
-  Enum['google', 'aws', 'azure']            $provider,
-  String[1]                                 $project              = $provider ? { 'aws' => 'ape', default => undef },
-  String[1]                                 $ssh_user             = $provider ? { 'aws' => 'centos', default => undef },
-  String[1]                                 $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
+  Enum['google', 'aws', 'azure']                $provider,
+  String[1]                                     $project              = $provider ? { 'aws' => 'ape', default => undef },
+  String[1]                                     $ssh_user             = $provider ? { 'aws' => 'ec2-user', default => undef },
+  String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
+
+  if $provider == 'google' and $subnetwork.is_a(Array) {
+    fail_plan('Google subnetwork must be provided as a String, an Array of subnetworks is only applicable for AWS based deployments')
+  }
+
+  if $provider == 'aws' and $subnetwork_project {
+    fail_plan('Setting the parameter subnetwork_project is only applicable for Google based deployments leveraging a shared subnetwork')
+  }
+
+  if $provider == 'azure' and $subnetwork {
+    fail_plan('Azure provided does not currently support attachment to existing networks')
+  }
 
   # Ensure that actions that operate on localhost use the local transport, else
   # Bolt will probably try to use SSH and most likely fail
@@ -42,22 +58,35 @@ plan pecdm::provision(
   # them and converting single quotes to double. Chose to use an inline_epp
   # instead of pure HEREDOC to allow for the use of conditionals
   $tfvars = inline_epp(@(TFVARS))
-    project         = "<%= $project %>"
-    user            = "<%= $ssh_user %>"
+    project            = "<%= $project %>"
+    user               = "<%= $ssh_user %>"
+    lb_ip_mode         = "<%= $lb_ip_mode %>"
     <% unless $ssh_pub_key_file == undef { -%>
-    ssh_key         = "<%= $ssh_pub_key_file %>"
+    ssh_key            = "<%= $ssh_pub_key_file %>"
     <% } -%>
-    region          = "<%= $cloud_region %>"
-    compiler_count  = <%= $compiler_count %>
+    region             = "<%= $cloud_region %>"
+    compiler_count     = <%= $compiler_count %>
     <% unless $node_count == undef { -%>
-    node_count      = "<%= $node_count %>"
+    node_count         = "<%= $node_count %>"
     <% } -%>
     <% unless $instance_image == undef { -%>
-    instance_image  = "<%= $instance_image %>"
+    instance_image     = "<%= $instance_image %>"
     <% } -%>
-    <% unless stack == undef { -%>
-    stack_name      = "<%= $stack %>"
+    <% unless $stack == undef { -%>
+    stack_name         = "<%= $stack %>"
     <% } -%>
+    <% unless $subnetwork == undef { -%>
+    <% if $provider == 'google' { -%>
+    subnetwork         = "<%= $subnetwork %>"
+    <% } -%>
+    <% if $provider == 'aws' { -%>
+    subnetwork         = <%= String($subnetwork).regsubst('\'', '"', 'G') %>
+    <% } -%>
+    <% } -%>
+    <% unless $subnetwork_project == undef { -%>
+    subnetwork_project = "<%= $subnetwork_project %>"
+    <% } -%>
+<<<<<<< HEAD
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture    = "<%= $architecture %>"
     cluster_profile = "<%= $cluster_profile %>"
@@ -79,6 +108,12 @@ plan pecdm::provision(
         <%- } -%>
       <%- } -%>
     <%- } -%>
+=======
+    firewall_allow     = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
+    architecture       = "<%= $architecture %>"
+    cluster_profile    = "<%= $cluster_profile %>"
+    replica            = <%= $replica %>
+>>>>>>> Provide option for selecting existing networks
     | TFVARS
 
   # TODO: make this print only when user specifies --verbose
@@ -130,15 +165,24 @@ plan pecdm::provision(
         'target_mapping' => $provider ? {
           'google' => {
             'name' => 'metadata.internalDNS',
-            'uri'  => 'network_interface.0.access_config.0.nat_ip',
+            'uri'  => $ssh_ip_mode ? {
+              'private' => 'network_interface.0.network_ip',
+              default   => 'network_interface.0.access_config.0.nat_ip',
+            }
           },
           'aws' => {
             'name' => 'private_dns',
-            'uri'  => 'public_ip',
+            'uri'  => $ssh_ip_mode ? {
+              'private' => 'private_ip',
+              default   => 'public_ip',
+            }
           },
           'azure' => {
             'name' => 'tags.internal_fqdn',
-            'uri'  => 'public_ip_address',
+            'uri'  => $ssh_ip_mode ? {
+              'private' => 'private_ip_address',
+              default   => 'public_ip_address',
+            }
           }
         }
       })
@@ -207,6 +251,6 @@ plan pecdm::provision(
     }
   }
 
-  $console = $apply['console']['value']
+  $console = getvar('inventory.server.0.uri')
   out::message("Log into Puppet Enterprise Console: https://${console}")
 }

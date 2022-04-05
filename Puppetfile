@@ -10,7 +10,7 @@ mod 'WhatsARanjit-node_manager', '0.7.5'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'v3.4.0'
+    ref: 'main'
 
 # External non-Puppet content
 #
@@ -24,12 +24,12 @@ mod 'puppetlabs-peadm',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          'b6750e50585d0775426bbf06c58dd42200297f24',
+    ref:          'multi_variable_decision',
     install_path: '.terraform'
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          '77b6fd23a4180334160903941214ff9962f20dff',
+    ref:          'existing_networks',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',
