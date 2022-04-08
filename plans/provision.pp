@@ -13,6 +13,7 @@ plan pecdm::provision(
   Optional[String[1]]                           $stack                = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnetwork           = undef,
   Optional[String[1]]                           $subnetwork_project   = undef,
+  Optional[Boolean]                             $disable_lb           = undef,
   Enum['private', 'public']                     $ssh_ip_mode          = 'public',
   Enum['private', 'public']                     $lb_ip_mode           = 'public',
   Array                                         $firewall_allow       = [],
@@ -87,6 +88,7 @@ plan pecdm::provision(
     subnetwork_project = "<%= $subnetwork_project %>"
     <% } -%>
 <<<<<<< HEAD
+<<<<<<< HEAD
     firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture    = "<%= $architecture %>"
     cluster_profile = "<%= $cluster_profile %>"
@@ -109,6 +111,11 @@ plan pecdm::provision(
       <%- } -%>
     <%- } -%>
 =======
+=======
+    <% unless $disable_lb == undef { -%>
+    disable_lb         = "<%= $disable_lb %>"
+    <% } -%>
+>>>>>>> Make LB provisioning more flexible
     firewall_allow     = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture       = "<%= $architecture %>"
     cluster_profile    = "<%= $cluster_profile %>"
