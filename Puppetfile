@@ -30,7 +30,7 @@ mod 'terraform-google_pe_arch',
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          'cff7508541e50f75d525df3f784e2f0e2c636d6d',
+    ref:          '1816761fea29e71132ed0703225ebdb5a4a704e4',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',

@@ -11,8 +11,8 @@ plan pecdm::provision(
   Optional[Integer]                             $node_count           = undef,
   Optional[String[1]]                           $instance_image       = undef,
   Optional[String[1]]                           $stack                = undef,
-  Optional[Variant[String[1],Array[String[1]]]] $subnetwork           = undef,
-  Optional[String[1]]                           $subnetwork_project   = undef,
+  Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
+  Optional[String[1]]                           $subnet_project       = undef,
   Optional[Boolean]                             $disable_lb           = undef,
   Enum['private', 'public']                     $ssh_ip_mode          = 'public',
   Enum['private', 'public']                     $lb_ip_mode           = 'public',
@@ -28,16 +28,16 @@ plan pecdm::provision(
   String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
 
-  if $provider == 'google' and $subnetwork.is_a(Array) {
-    fail_plan('Google subnetwork must be provided as a String, an Array of subnetworks is only applicable for AWS based deployments')
+  if $provider == 'google' and $subnet.is_a(Array) {
+    fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
   }
 
-  if $provider == 'aws' and $subnetwork_project {
-    fail_plan('Setting the parameter subnetwork_project is only applicable for Google based deployments leveraging a shared subnetwork')
+  if $provider == 'aws' and $subnet_project {
+    fail_plan('Setting the parameter subnet_project is only applicable for Google deployments using a subnet shared from another project')
   }
 
-  if $provider == 'azure' and $subnetwork {
-    fail_plan('Azure provided does not currently support attachment to existing networks')
+  if $provider == 'azure' and $subnet {
+    fail_plan('Azure provider does not currently support attachment to existing networks')
   }
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -59,40 +59,41 @@ plan pecdm::provision(
   # them and converting single quotes to double. Chose to use an inline_epp
   # instead of pure HEREDOC to allow for the use of conditionals
   $tfvars = inline_epp(@(TFVARS))
-    project            = "<%= $project %>"
-    user               = "<%= $ssh_user %>"
-    lb_ip_mode         = "<%= $lb_ip_mode %>"
+    project         = "<%= $project %>"
+    user            = "<%= $ssh_user %>"
+    lb_ip_mode      = "<%= $lb_ip_mode %>"
     <% unless $ssh_pub_key_file == undef { -%>
-    ssh_key            = "<%= $ssh_pub_key_file %>"
+    ssh_key         = "<%= $ssh_pub_key_file %>"
     <% } -%>
-    region             = "<%= $cloud_region %>"
-    compiler_count     = <%= $compiler_count %>
+    region          = "<%= $cloud_region %>"
+    compiler_count  = <%= $compiler_count %>
     <% unless $node_count == undef { -%>
-    node_count         = "<%= $node_count %>"
+    node_count      = "<%= $node_count %>"
     <% } -%>
     <% unless $instance_image == undef { -%>
-    instance_image     = "<%= $instance_image %>"
+    instance_image  = "<%= $instance_image %>"
     <% } -%>
     <% unless $stack == undef { -%>
-    stack_name         = "<%= $stack %>"
+    stack_name      = "<%= $stack %>"
     <% } -%>
-    <% unless $subnetwork == undef { -%>
-    <% if $provider == 'google' { -%>
-    subnetwork         = "<%= $subnetwork %>"
+    <% unless $subnet == undef { -%>
+      <% if $provider == 'google' { -%>
+    subnet          = "<%= $subnet %>"
+      <% } -%>
+      <% if $provider == 'aws' { -%>
+    subnet          = <%= String($subnet).regsubst('\'', '"', 'G') %>
+      <% } -%>
     <% } -%>
-    <% if $provider == 'aws' { -%>
-    subnetwork         = <%= String($subnetwork).regsubst('\'', '"', 'G') %>
+    <% unless $subnet_project == undef { -%>
+    subnet_project  = "<%= $subnet_project %>"
     <% } -%>
-    <% } -%>
-    <% unless $subnetwork_project == undef { -%>
-    subnetwork_project = "<%= $subnetwork_project %>"
-    <% } -%>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    firewall_allow = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
+    firewall_allow  = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
     architecture    = "<%= $architecture %>"
     cluster_profile = "<%= $cluster_profile %>"
     replica         = <%= $replica %>
+    <% unless $disable_lb == undef { -%>
+    disable_lb      = "<%= $disable_lb %>"
+    <% } -%>
     <%- unless $extra_terraform_vars.empty { -%>
       <%- $extra_terraform_vars.each | String $key, $value | { -%>
         <%- if $value =~ String or $value =~ Boolean { -%>
@@ -110,17 +111,6 @@ plan pecdm::provision(
         <%- } -%>
       <%- } -%>
     <%- } -%>
-=======
-=======
-    <% unless $disable_lb == undef { -%>
-    disable_lb         = "<%= $disable_lb %>"
-    <% } -%>
->>>>>>> Make LB provisioning more flexible
-    firewall_allow     = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
-    architecture       = "<%= $architecture %>"
-    cluster_profile    = "<%= $cluster_profile %>"
-    replica            = <%= $replica %>
->>>>>>> Provide option for selecting existing networks
     | TFVARS
 
   # TODO: make this print only when user specifies --verbose
