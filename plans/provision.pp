@@ -1,25 +1,26 @@
 # @summary Provision new PE cluster to The Cloud
 #
 plan pecdm::provision(
-  TargetSpec                                $targets            = get_targets('peadm_nodes'),
-  Enum['xlarge', 'large', 'standard']       $architecture       = 'standard',
-  Enum['development', 'production', 'user'] $cluster_profile    = 'development',
-  String[1]                                 $version            = '2019.8.5',
-  String[1]                                 $console_password   = 'puppetlabs',
-  Integer                                   $compiler_count     = 1,
-  Optional[String[1]]                       $ssh_pub_key_file   = undef,
-  Optional[Integer]                         $node_count         = undef,
-  Optional[String[1]]                       $instance_image     = undef,
-  Optional[String[1]]                       $stack              = undef,
-  Array                                     $firewall_allow     = [],
-  Hash                                      $extra_peadm_params = {},
-  Boolean                                   $replica            = false,
-  Boolean                                   $stage              = false,
+  TargetSpec                                $targets              = get_targets('peadm_nodes'),
+  Enum['xlarge', 'large', 'standard']       $architecture         = 'standard',
+  Enum['development', 'production', 'user'] $cluster_profile      = 'development',
+  String[1]                                 $version              = '2019.8.5',
+  String[1]                                 $console_password     = 'puppetlabs',
+  Integer                                   $compiler_count       = 1,
+  Optional[String[1]]                       $ssh_pub_key_file     = undef,
+  Optional[Integer]                         $node_count           = undef,
+  Optional[String[1]]                       $instance_image       = undef,
+  Optional[String[1]]                       $stack                = undef,
+  Array                                     $firewall_allow       = [],
+  Hash                                      $extra_peadm_params   = {},
+  Hash                                      $extra_terraform_vars = {},
+  Boolean                                   $replica              = false,
+  Boolean                                   $stage                = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']            $provider,
-  String[1]                                 $project            = $provider ? { 'aws' => 'ape', default => undef },
-  String[1]                                 $ssh_user           = $provider ? { 'aws' => 'centos', default => undef },
-  String[1]                                 $cloud_region       = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
+  String[1]                                 $project              = $provider ? { 'aws' => 'ape', default => undef },
+  String[1]                                 $ssh_user             = $provider ? { 'aws' => 'centos', default => undef },
+  String[1]                                 $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -61,6 +62,23 @@ plan pecdm::provision(
     architecture    = "<%= $architecture %>"
     cluster_profile = "<%= $cluster_profile %>"
     replica         = <%= $replica %>
+    <%- unless $extra_terraform_vars.empty { -%>
+      <%- $extra_terraform_vars.each | String $key, $value | { -%>
+        <%- if $value =~ String or $value =~ Boolean { -%>
+    <%= $key %> = "<%= $value %>"
+        <%- } elsif $value =~ Integer { -%>
+    <%= $key %> = <%= $value %>
+        <%- } elsif $value =~ Array { -%>
+    <%= $key %> = <%= String($value).regsubst('\'', '"', 'G')  %>
+        <%- } elsif $value =~ Hash { -%>
+    <%= $key %> = {
+          <%- $value.each | String $k, String $v | { -%>
+      "<%= $k %>" = "<%= $v %>"
+          <%- } -%>
+    }
+        <%- } -%>
+      <%- } -%>
+    <%- } -%>
     | TFVARS
 
   # TODO: make this print only when user specifies --verbose
