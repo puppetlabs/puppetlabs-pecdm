@@ -4,6 +4,7 @@ plan pecdm::provision(
   TargetSpec                                    $targets              = get_targets('peadm_nodes'),
   Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
   Enum['development', 'production', 'user']     $cluster_profile      = 'development',
+  Enum['direct', 'bolthost']                    $download_mode        = 'direct',
   String[1]                                     $version              = '2019.8.10',
   String[1]                                     $console_password     = 'puppetlabs',
   Integer                                       $compiler_count       = 1,
@@ -210,7 +211,7 @@ plan pecdm::provision(
     'console_password'        => $console_password,
     'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
     'compiler_pool_address'   => $apply['pool']['value'],
-    'download_mode'           => 'direct',
+    'download_mode'           => $download_mode,
     'version'                 => $version
   }
 
