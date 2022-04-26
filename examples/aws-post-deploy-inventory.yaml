@@ -1,0 +1,40 @@
+---
+config:
+  transport: ssh
+  ssh:
+    user: ec2-user
+    host-key-check: false
+    run-as: root
+groups:
+  - name: peadm_nodes
+    targets:
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.server
+        target_mapping:
+          name: private_dns
+          uri: public_ip # or private_ip
+          alias: tags.Name
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.compiler
+        target_mapping:
+          name: private_dns
+          uri: public_ip # or private_ip
+          alias: tags.Name
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.psql
+        target_mapping:
+          name: private_dns
+          uri: public_ip # or private_ip
+          alias: tags.Name
+  - name: agent_nodes
+    targets:
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.node
+        target_mapping:
+          name: private_dns
+          uri: public_ip # or private_ip
+          alias: tags.Name

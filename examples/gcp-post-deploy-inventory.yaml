@@ -1,0 +1,35 @@
+---
+config:
+  transport: ssh
+  ssh:
+    host-key-check: false
+    run-as: root
+groups:
+  - name: peadm_nodes
+    targets:
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.server
+        target_mapping:
+          name: metadata.internalDNS
+          uri: network_interface.0.access_config.0.nat_ip # or network_interface.0.network_ip
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.compiler
+        target_mapping:
+          name: metadata.internalDNS
+          uri: network_interface.0.access_config.0.nat_ip # or network_interface.0.network_ip
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.psql
+        target_mapping:
+          name: metadata.internalDNS
+          uri: network_interface.0.access_config.0.nat_ip # or network_interface.0.network_ip
+  - name: agent_nodes
+    targets:
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.node
+        target_mapping:
+          name: metadata.internalDNS
+          uri: network_interface.0.access_config.0.nat_ip # or network_interface.0.network_ip
