@@ -1,16 +1,17 @@
 forge 'https://forge.puppet.com'
 
 # Modules from the Puppet Forge
-mod 'puppetlabs-stdlib', '7.0.0'
-mod 'puppetlabs-apply_helpers', '0.2.1'
-mod 'puppetlabs-bolt_shim', '0.3.2'
+mod 'puppetlabs-stdlib', '8.1.0'
+mod 'puppetlabs-apply_helpers', '0.3.0'
+mod 'puppetlabs-bolt_shim', '0.4.0'
 mod 'puppetlabs-terraform', '0.6.1'
+mod 'puppetlabs-inifile', '5.2.0'
 mod 'WhatsARanjit-node_manager', '0.7.5'
 
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: 'v3.4.0'
+    ref: '06f848e3bb49c5abcfb1d732075c16ddecb38672'
 
 # External non-Puppet content
 #
@@ -24,12 +25,12 @@ mod 'puppetlabs-peadm',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          'b6750e50585d0775426bbf06c58dd42200297f24',
+    ref:          '33025b49a7aeeaa854bf5509f82295b695711096',
     install_path: '.terraform'
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          '77b6fd23a4180334160903941214ff9962f20dff',
+    ref:          '1816761fea29e71132ed0703225ebdb5a4a704e4',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',
