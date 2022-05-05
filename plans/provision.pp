@@ -210,7 +210,7 @@ plan pecdm::provision(
     'replica_postgresql_host' => getvar('inventory.psql.1.name'),
     'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
     'console_password'        => $console_password,
-    'dns_alt_names'           => peadm::flatten_compact([ 'puppet', $apply['pool']['value'] ] + $dns_alt_names).delete('')
+    'dns_alt_names'           => peadm::flatten_compact([ 'puppet', $apply['pool']['value'] ] + $dns_alt_names).delete(''),
     'compiler_pool_address'   => $apply['pool']['value'],
     'download_mode'           => $download_mode,
     'version'                 => $version
