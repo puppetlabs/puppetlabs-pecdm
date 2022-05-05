@@ -18,6 +18,7 @@ plan pecdm::provision(
   Enum['private', 'public']                     $ssh_ip_mode          = 'public',
   Enum['private', 'public']                     $lb_ip_mode           = 'public',
   Array                                         $firewall_allow       = [],
+  Array                                         $dns_alt_names        = [],
   Hash                                          $extra_peadm_params   = {},
   Hash                                          $extra_terraform_vars = {},
   Boolean                                       $replica              = false,
@@ -209,7 +210,7 @@ plan pecdm::provision(
     'replica_postgresql_host' => getvar('inventory.psql.1.name'),
     'compiler_hosts'          => getvar('inventory.compiler').map |$c| { $c['name'] },
     'console_password'        => $console_password,
-    'dns_alt_names'           => [ 'puppet', $apply['pool']['value'] ],
+    'dns_alt_names'           => peadm::flatten_compact([ 'puppet', $apply['pool']['value'] ] + $dns_alt_names).delete('')
     'compiler_pool_address'   => $apply['pool']['value'],
     'download_mode'           => $download_mode,
     'version'                 => $version
