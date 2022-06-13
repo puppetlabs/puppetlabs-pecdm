@@ -70,7 +70,7 @@ Types of things you'll be paying your cloud provider for
 
 **Parameter requirements**
 
-Due to the creation of an elb load balancer (32 characters name limit) using the aws provider the project name can't be longer than 9 characters.
+* `lb_ip_mode`: Default is **private**, which will result in load balancer creation that is only accessible from within the VPC where PE is provisioned. To access the load balancer your agents will need to reside within the same VPC as PE or have its VPC peered so private IPs can be routed between PE and the agent's VPC. If you set this parameter to **public** on AWS then the ELB creation will associate a public IP, potentially accessible from the internet. On GCP, setting parameter to **public** will result in PE deployment failure due to GCP not providing DNS entires for internet facing load balancers.
 
 **Example: params.json**
 
@@ -132,4 +132,4 @@ The number of options required are reduced when destroying a stack
 
 ## Limitations
 
-Only supports what peadm supports and AWS does not currently have parity with the GCP provider, e.g. AWS ignores a few parameters
+Only supports what peadm supports and not all supporting Terraform modules have parity with each other.

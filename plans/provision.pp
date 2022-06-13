@@ -16,7 +16,7 @@ plan pecdm::provision(
   Optional[String[1]]                           $subnet_project       = undef,
   Optional[Boolean]                             $disable_lb           = undef,
   Enum['private', 'public']                     $ssh_ip_mode          = 'public',
-  Enum['private', 'public']                     $lb_ip_mode           = 'public',
+  Enum['private', 'public']                     $lb_ip_mode           = 'private',
   Array                                         $firewall_allow       = [],
   Array                                         $dns_alt_names        = [],
   Hash                                          $extra_peadm_params   = {},
@@ -30,12 +30,17 @@ plan pecdm::provision(
   String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }, # lint:ignore:140chars
 ) {
 
-  if $provider == 'google' and $subnet.is_a(Array) {
-    fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
+  if $provider == 'google' {
+    if $subnet.is_a(Array) {
+      fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
+    }
+    if $lb_ip_mode == 'public' {
+      fail_plan('Setting lb_ip_mode parameter to public with the GCP provider is not currently supported due to lack of GCP provided DNS')
+    }
   }
 
   if $provider == 'aws' and $subnet_project {
-    fail_plan('Setting the parameter subnet_project is only applicable for Google deployments using a subnet shared from another project')
+    fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
   }
 
   if $provider == 'azure' and $subnet {
