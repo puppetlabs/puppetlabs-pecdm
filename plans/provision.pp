@@ -164,15 +164,17 @@ plan pecdm::provision(
         },
         'target_mapping' => $provider ? {
           'google' => {
-            'name' => 'metadata.internalDNS',
-            'uri'  => $ssh_ip_mode ? {
+            'name'  => 'metadata.internalDNS',
+            'target_alias' => 'name',
+            'uri'   => $ssh_ip_mode ? {
               'private' => 'network_interface.0.network_ip',
               default   => 'network_interface.0.access_config.0.nat_ip',
             }
           },
           'aws' => {
-            'name' => 'private_dns',
-            'uri'  => $ssh_ip_mode ? {
+            'name'  => 'private_dns',
+            'target_alias' => 'tags.Name',
+            'uri'   => $ssh_ip_mode ? {
               'private' => 'private_ip',
               default   => 'public_ip',
             }
@@ -253,4 +255,5 @@ plan pecdm::provision(
 
   $console = getvar('inventory.server.0.uri')
   out::message("Log into Puppet Enterprise Console: https://${console}")
+  return $inventory
 }
