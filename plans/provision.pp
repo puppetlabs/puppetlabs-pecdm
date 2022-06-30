@@ -11,7 +11,6 @@ plan pecdm::provision(
   Optional[String[1]]                           $ssh_pub_key_file     = undef,
   Optional[Integer]                             $node_count           = undef,
   Optional[String[1]]                           $instance_image       = undef,
-  Optional[String[1]]                           $stack                = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
   Optional[String[1]]                           $subnet_project       = undef,
   Optional[Boolean]                             $disable_lb           = undef,
@@ -79,9 +78,6 @@ plan pecdm::provision(
     <% } -%>
     <% unless $instance_image == undef { -%>
     instance_image  = "<%= $instance_image %>"
-    <% } -%>
-    <% unless $stack == undef { -%>
-    stack_name      = "<%= $stack %>"
     <% } -%>
     <% unless $subnet == undef { -%>
       <% if $provider == 'google' { -%>
