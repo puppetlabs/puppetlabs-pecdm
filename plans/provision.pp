@@ -10,7 +10,7 @@ plan pecdm::provision(
   Integer                                       $compiler_count       = 1,
   Optional[String[1]]                           $ssh_pub_key_file     = undef,
   Optional[Integer]                             $node_count           = undef,
-  Optional[String[1]]                           $instance_image       = undef,
+  Optional[Variant[String[1],Hash]]             $instance_image       = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
   Optional[String[1]]                           $subnet_project       = undef,
   Optional[Boolean]                             $disable_lb           = undef,
@@ -30,6 +30,8 @@ plan pecdm::provision(
 ) {
 
   if $provider == 'google' {
+    $_instance_image = $instance_image
+
     if $subnet.is_a(Array) {
       fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
     }
@@ -38,12 +40,24 @@ plan pecdm::provision(
     }
   }
 
-  if $provider == 'aws' and $subnet_project {
-    fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
+  if $provider == 'aws' {
+    $_instance_image = $instance_image
+
+    if $subnet_project {
+      fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
+    }
   }
 
-  if $provider == 'azure' and $subnet {
-    fail_plan('Azure provider does not currently support attachment to existing networks')
+  if $provider == 'azure' {
+    if $instance_image.is_a(String) {
+      $_instance_image = { 'instance_image' => $instance_image, 'image_plan' => '' }
+    } else {
+      $_instance_image = $instance_image
+    }
+
+    if $subnet {
+      fail_plan('Azure provider does not currently support attachment to existing networks')
+    }
   }
 
   # Ensure that actions that operate on localhost use the local transport, else
@@ -77,7 +91,12 @@ plan pecdm::provision(
     node_count      = "<%= $node_count %>"
     <% } -%>
     <% unless $instance_image == undef { -%>
-    instance_image  = "<%= $instance_image %>"
+      <% if $provider == 'azure' { -%>
+        instance_image  = "<%= $_instance_image['instance_image'] %>"
+        image_plan      = "<%= $_instance_image['image_plan'] %>"
+      <% } else { -%>
+        instance_image  = "<%= $_instance_image %>"
+      <% } -%>
     <% } -%>
     <% unless $subnet == undef { -%>
       <% if $provider == 'google' { -%>
@@ -178,7 +197,7 @@ plan pecdm::provision(
             }
           },
           'azure' => {
-            'name' => 'tags.internal_fqdn',
+            'name' => 'tags.internalDNS',
             'uri'  => $ssh_ip_mode ? {
               'private' => 'private_ip_address',
               default   => 'public_ip_address',
