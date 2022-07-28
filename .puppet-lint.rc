@@ -1,1 +1,6 @@
 --relative
+--no-strict_indent
+--no-trailing_comma
+--no-manifest_whitespace_opening_brace_before
+--no-manifest_whitespace_opening_brace_after
+--no-140chars

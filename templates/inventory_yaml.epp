@@ -1,0 +1,123 @@
+<%- | Enum['private', 'public']      $ssh_ip_mode,
+      Enum['google', 'aws', 'azure'] $provider,
+      Boolean                        $windows_runner = false,
+| -%>
+<%- case $provider { -%>
+  <%- 'google': { -%>
+    <%- $uri_param = $ssh_ip_mode ? { -%>
+      <%- 'private' => 'network_interface.0.network_ip', -%>
+      <%- 'public'  => 'network_interface.0.access_config.0.nat_ip' -%>
+    <%- } -%>
+  <%- } -%>
+  <%- 'aws': { -%>
+    <%- $uri_param = $ssh_ip_mode ? { -%>
+      <%- 'private' => 'private_ip', -%>
+      <%- 'public'  => 'public_ip' -%>
+    <%- } -%>
+  <%- } -%>
+  <%- 'azure': { -%>
+    <%- $uri_param = $ssh_ip_mode ? { -%>
+      <%- 'private' => 'private_ip_address', -%>
+      <%- 'public'  => 'public_ip_address' -%>
+    <%- } -%>
+  <%- } -%>
+<%- } -%>
+---
+config:
+  transport: ssh
+  ssh:
+    host-key-check: false
+    run-as: root
+    <%- if $windows_runner { -%>
+    native-ssh: true
+    ssh-command: 'ssh' 
+    <%- } -%>
+groups:
+  - name: peadm_nodes
+    targets:
+    <%- if $provider == 'google' { -%>
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.server
+        target_mapping:
+          name: metadata.internalDNS
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.compiler
+        target_mapping:
+          name: metadata.internalDNS
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.psql
+        target_mapping:
+          name: metadata.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'aws' { -%>
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.server
+        target_mapping:
+          name: public_dns
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.compiler
+        target_mapping:
+          name: public_dns
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.psql
+        target_mapping:
+          name: public_dns
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'azure' { -%>
+      - _plugin: terraform
+        dir: .terraform/azure_pe_arch
+        resource_type: azurerm_linux_virtual_machine.server
+        target_mapping:
+          name: tags.internalDNS
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/azure_pe_arch
+        resource_type: azurerm_linux_virtual_machine.compiler
+        target_mapping:
+          name: tags.internalDNS
+          uri: <%= $uri_param %>
+      - _plugin: terraform
+        dir: .terraform/azure_pe_arch
+        resource_type: azurerm_linux_virtual_machine.psql
+        target_mapping:
+          name: tags.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+  - name: agent_nodes
+    targets:
+    <%- if $provider == 'google' { -%>
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.node
+        target_mapping:
+          name: metadata.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'aws' { -%>
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.node
+        target_mapping:
+          name: public_dns
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'azure' { -%>
+      - _plugin: terraform
+        dir: .terraform/azure_pe_arch
+        resource_type: azurerm_linux_virtual_machine.node
+        target_mapping:
+          name: tags.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
