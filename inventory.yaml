@@ -47,19 +47,19 @@ groups:
         dir: .terraform/azure_pe_arch
         resource_type: azurerm_linux_virtual_machine.server
         target_mapping:
-          name: tags.internal_fqdn
+          name: tags.internalDNS
           uri: public_ip_address
       - _plugin: terraform
         dir: .terraform/azure_pe_arch
         resource_type: azurerm_linux_virtual_machine.compiler
         target_mapping:
-          name: tags.internal_fqdn
+          name: tags.internalDNS
           uri: public_ip_address
       - _plugin: terraform
         dir: .terraform/azure_pe_arch
         resource_type: azurerm_linux_virtual_machine.psql
         target_mapping:
-          name: tags.internal_fqdn
+          name: tags.internalDNS
           uri: public_ip_address
   - name: agent_nodes
     targets:
@@ -79,5 +79,5 @@ groups:
         dir: .terraform/azure_pe_arch
         resource_type: azurerm_linux_virtual_machine.node
         target_mapping:
-          name: tags.internal_fqdn
+          name: tags.internalDNS
           uri: public_ip_address
