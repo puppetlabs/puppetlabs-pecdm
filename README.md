@@ -72,6 +72,16 @@ Types of things you'll be paying your cloud provider for
 
 * `lb_ip_mode`: Default is **private**, which will result in load balancer creation that is only accessible from within the VPC where PE is provisioned. To access the load balancer your agents will need to reside within the same VPC as PE or have its VPC peered so private IPs can be routed between PE and the agent's VPC. If you set this parameter to **public** on AWS then the ELB creation will associate a public IP, potentially accessible from the internet. On GCP, setting parameter to **public** will result in PE deployment failure due to GCP not providing DNS entires for internet facing load balancers.
 
+**Windows Native SSH workaround
+
+Due to bolt being [unable to authenticate with ed25519 keys over SSH transport on Windows](https://puppet.com/docs/bolt/latest/bolt_known_issues.html#unable-to-authenticate-with-ed25519-keys-over-ssh-transport-on-windows) the [Native ssh transport](https://puppet.com/docs/bolt/latest/experimental_features.html#native-ssh-transport)
+
+```
+ssh:
+  native-ssh: true
+  ssh-command: 'ssh' 
+```
+
 **Example: params.json**
 
 The command line will likely serve most uses of **pecdm** but if you wish to pass a longer list of IP blocks that are authorized to access your PE stack than creating a **params.json** file is going to be a good idea, instead of trying to type out a multi value array on the command line. The value that will ultimately be set for the GCP firewall will always include the internal network address space to ensure everything works no matter what is passed in by the user.
