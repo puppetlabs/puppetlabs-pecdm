@@ -5,9 +5,9 @@ plan pecdm::provision(
   Enum['development', 'production', 'user']     $cluster_profile      = 'development',
   Enum['direct', 'bolthost']                    $download_mode        = 'direct',
   String[1]                                     $version              = '2019.8.10',
-  String[1]                                     $console_password     = 'puppetlabs',
   Integer                                       $compiler_count       = 1,
   Optional[String[1]]                           $ssh_pub_key_file     = undef,
+  Optional[String[1]]                           $console_password     = undef,
   Optional[Integer]                             $node_count           = undef,
   Optional[Variant[String[1],Hash]]             $instance_image       = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
@@ -33,6 +33,14 @@ plan pecdm::provision(
     fail_plan('The provisioning of agent nodes requires lb_ip_mode to be set to private')
   }
 
+  if $console_password {
+    $_console_password = $console_password
+  } else {
+    $_console_password = prompt('Input Puppet Enterprise console password now or accept default. [puppetlabs]',
+      'sensitive' => true, 'default' => 'puppetlabs'
+    )
+  }
+
   $provisioned = run_plan('pecdm::subplans::provision', {
     architecture         => $architecture,
     cluster_profile      => $cluster_profile,
@@ -51,7 +59,6 @@ plan pecdm::provision(
     project              => $project,
     ssh_user             => $ssh_user,
     cloud_region         => $cloud_region,
-    windows_runner       => $windows_runner,
     extra_terraform_vars => $extra_terraform_vars
   })
 
@@ -61,7 +68,7 @@ plan pecdm::provision(
       compiler_pool_address  => $provisioned['compiler_pool_address'],
       download_mode          => $download_mode,
       version                => $version,
-      console_password       => $console_password,
+      console_password       => $_console_password.unwrap,
       dns_alt_names          => $dns_alt_names,
       extra_peadm_params     => $extra_peadm_params
     })
