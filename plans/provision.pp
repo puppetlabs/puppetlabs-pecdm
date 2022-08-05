@@ -22,7 +22,6 @@ plan pecdm::provision(
   Boolean                                       $replica              = false,
   Boolean                                       $stage                = false,
   Boolean                                       $write_inventory      = false,
-  Boolean                                       $windows_runner       = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
   Optional[String[1]]                           $project              = undef,
@@ -85,7 +84,7 @@ plan pecdm::provision(
     run_plan('pecdm::utils::inventory_yaml', {
       provider       => $provider,
       ssh_ip_mode    => $ssh_ip_mode,
-      windows_runner => $windows_runner
+      windows_runner => pecdm::is_windows()
     })
   }
 }

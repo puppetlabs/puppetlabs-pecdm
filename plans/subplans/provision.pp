@@ -15,7 +15,6 @@ plan pecdm::subplans::provision(
   Array                                         $firewall_allow       = [],
   Hash                                          $extra_terraform_vars = {},
   Boolean                                       $replica              = false,
-  Boolean                                       $windows_runner       = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
   String[1]                                     $project              = $provider ? { 'aws' => 'ape', default => undef },
@@ -124,7 +123,7 @@ plan pecdm::subplans::provision(
     }
   }
 
-  $target_config = $windows_runner ? {
+  $target_config = pecdm::is_windows() ? {
     true  => deep_merge($_target_config, $windows_runner_config),
     false => $_target_config
   }
