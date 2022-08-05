@@ -1,4 +1,11 @@
-# @summary Destroy a pecdm provisioned PE cluster
+# @summary Deploy puppet agent and enroll a set of nodes into pecdm provisioned cluster
+#
+# @param compiler_pool_address
+#   The FQDN that agent nodes will connect to for catalog compilation services
+#
+# @param primary_host
+#   The target which is the cluster's primary node that is responsible for
+#   certificate signing
 #
 plan pecdm::utils::deploy_agents(
   TargetSpec $targets,

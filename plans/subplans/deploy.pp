@@ -1,4 +1,29 @@
-# @summary Provision new PE cluster to The Cloud
+# @summary Deploy Puppet Enterprise in the cloud by launching peadm with appropriate parameters
+#
+# @param inventory
+#   Node inventory hash provided by Pecdm::Subplans::Provision plan
+#
+# @param compiler_pool_address
+#   The FQDN that agent nodes will connect to for catalog compilation services
+#
+# @param download_mode
+#   The method peadm will use to transfer the PE installer to each
+#   infrastructure node
+#
+# @param version
+#   Which PE version to install with peadm
+#
+# @param console_password
+#   Initial admin user console password, if not provided you will be prompted to
+#   input one or accept an insecure default
+#
+# @param dns_alt_names
+#   Any additional DNS Alternative Names that must be assigned to PE
+#   infrastructure node certificates
+#
+# @param extra_peadm_params
+#   The pecdm plan does not expose all parameters available to peadm, if others
+#   are needed then pass a hash
 #
 plan pecdm::subplans::deploy(
   Hash                                          $inventory,

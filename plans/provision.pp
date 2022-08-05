@@ -1,4 +1,102 @@
-# @summary Provision new PE cluster to The Cloud
+# @summary Provision infrastructure and deploy Puppet Enterprise in the cloud
+#
+# @param architecture
+#   Which of the three supported architectures to provision infrastructure for
+#
+# @param cluster_profile
+#   The profile of the cluster provisioned that determines if it is more suited
+#   for development or production
+#
+# @param download_mode
+#   The method peadm will use to transfer the PE installer to each
+#   infrastructure node
+#
+# @param version
+#   Which PE version to install with peadm
+#
+# @param compiler_count
+#   Quantity of compilers that are provisioned and deployed in Large and Extra
+#   Large installations
+#
+# @param ssh_pub_key_file
+#   Path to the ssh public key file that will be passed to Terraform for
+#   granting access to instances over SSH
+#
+# @param console_password
+#   Initial admin user console password, if not provided you will be prompted to
+#   input one or accept an insecure default
+#
+# @param node_count
+#   Number of agent nodes to provision and enroll into deployment for testing
+#   and development
+#
+# @param instance_image
+#   The cloud image that is used for new instance provisioning, format differs
+#   depending on provider
+#
+# @param subnet
+#   Name or ID of an existing subnet to attach newly provisioned infrastructure
+#   to
+#
+# @param subnet_project
+#   If using the GCP provider, the name of the project which owns the existing
+#   subnet you are attaching new infrastructure to if it is different than the
+#   project you are provisioning into
+#
+# @param disable_lb
+#   Option to disable load balancer creation for situations where you're
+#   required to leverage alternate technology than what is provided by the cloud
+#   provider
+#
+# @param ssh_ip_mode
+#   The type of IPv4 address that will be used to gain SSH access to instances
+#
+# @param lb_ip_mode
+#   The type of IPv4 address that is used for load balancing, private or public
+#
+# @param firewall_allow
+#   IPv4 address subnets that should have access to PE through firewall
+#
+# @param dns_alt_names
+#   Any additional DNS Alternative Names that must be assigned to PE
+#   infrastructure node certificates
+#
+# @param extra_peadm_params
+#   The pecdm plan does not expose all parameters available to peadm, if others
+#   are needed then pass a hash
+#
+# @param extra_terraform_vars
+#   The pecdm plan does not expose all variables defined by supporting Terraform
+#   modules, if others are needed then pass a hash
+#
+# @param replica
+#   Set to true to deploy a replica and enable PE DR for any of the three
+#   supported architectures
+#
+# @param stage
+#   Set to true if you want to skip PE deployment and just provision
+#   infrastructure
+#
+# @param write_inventory
+#   Optionally write an inventory.yaml to the current working directory which is
+#   specific to the provider
+#
+# @param provider
+#   Which cloud provider that infrastructure will be provisioned into
+#
+# @param project
+#   One of three things depending on the provider used: a GCP project to deploy
+#   infrastructure into, the name of the Azure resource group that is created
+#   specifically for new infrastructure, or a simple tag attached to AWS
+#   instances
+#
+# @param ssh_user
+#   User name that will be used for accessing infrastructure over SSH, defaults
+#   to ec2-user on when using the AWS provider but a value is required on GCp and Azure
+#
+# @param cloud_region
+#   Which region to provision infrastructure in, if not provided default will
+#   be determined by provider
 #
 plan pecdm::provision(
   Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',

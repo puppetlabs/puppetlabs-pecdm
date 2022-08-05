@@ -1,4 +1,11 @@
-# @summary Destroy a pecdm provisioned PE cluster
+# @summary Destroy a pecdm provisioned Puppet Enterprise cluster
+#
+# @param provider
+#   Which cloud provider that infrastructure will be provisioned into
+#
+# @param cloud_region
+#   Which region to provision infrastructure in, if not provided default will
+#   be determined by provider
 #
 plan pecdm::destroy(
   Enum['google', 'aws', 'azure']  $provider,
