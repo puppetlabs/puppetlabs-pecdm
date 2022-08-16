@@ -74,7 +74,7 @@ Types of things you'll be paying your cloud provider for
 
 **Windows Native SSH workaround
 
-Due to bolt being [unable to authenticate with ed25519 keys over SSH transport on Windows](https://puppet.com/docs/bolt/latest/bolt_known_issues.html#unable-to-authenticate-with-ed25519-keys-over-ssh-transport-on-windows) the [Native ssh transport](https://puppet.com/docs/bolt/latest/experimental_features.html#native-ssh-transport)
+Due to bolt being [unable to authenticate with ed25519 keys over SSH transport on Windows](https://puppet.com/docs/bolt/latest/bolt_known_issues.html#unable-to-authenticate-with-ed25519-keys-over-ssh-transport-on-windows) you must utilize the [Native ssh transport](https://puppet.com/docs/bolt/latest/experimental_features.html#native-ssh-transport) when running pecdm from a Windows workstation. This is done automatically on provisioning if your current project directory lacks an inventory.yaml. If you choose to maintain your own inventory.yaml file than add the below configuration example.
 
 ```
 ssh:
@@ -135,6 +135,8 @@ The number of options required are reduced when destroying a stack
 `bolt plan run pecdm::destroy provider=aws`
 
 ### Upgrading examples
+
+**Upgrade is currently non-functional**
 
 #### Upgrade a AWS stack
 
