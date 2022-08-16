@@ -189,7 +189,7 @@ plan pecdm::subplans::provision(
     'config' => {
       'ssh' => {
         'native-ssh'  => true,
-        'ssh-command' => 'ssh' 
+        'ssh-command' => 'ssh'
       }
     }
   }

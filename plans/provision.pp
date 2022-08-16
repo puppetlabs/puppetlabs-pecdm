@@ -119,7 +119,7 @@ plan pecdm::provision(
   Hash                                          $extra_terraform_vars = {},
   Boolean                                       $replica              = false,
   Boolean                                       $stage                = false,
-  Boolean                                       $write_inventory      = false,
+  Boolean                                       $write_inventory      = true,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
   Optional[String[1]]                           $project              = undef,
