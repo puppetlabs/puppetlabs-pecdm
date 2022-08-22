@@ -148,6 +148,7 @@ plan pecdm::subplans::provision(
     replica              => $replica,
     compiler_count       => $compiler_count,
     disable_lb           => $disable_lb,
+    provider             => $provider,
     extra_terraform_vars => $extra_terraform_vars
   })
 
