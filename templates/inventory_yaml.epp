@@ -1,6 +1,6 @@
 <%- | Enum['private', 'public']      $ssh_ip_mode,
       Enum['google', 'aws', 'azure'] $provider,
-      Boolean                        $windows_runner = false,
+      Boolean                        $native_ssh = false,
 | -%>
 <%- case $provider { -%>
   <%- 'google': { -%>
@@ -28,7 +28,7 @@ config:
   ssh:
     host-key-check: false
     run-as: root
-    <%- if $windows_runner { -%>
+    <%- if $native_ssh { -%>
     native-ssh: true
     ssh-command: 'ssh' 
     <%- } -%>

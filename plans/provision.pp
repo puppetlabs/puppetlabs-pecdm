@@ -98,6 +98,10 @@
 #   Which region to provision infrastructure in, if not provided default will
 #   be determined by provider
 #
+# @param native_ssh
+#   Set this to true if the plan should leverage native SSH instead of Ruby's
+#   net-ssh library
+#
 plan pecdm::provision(
   Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
   Enum['development', 'production', 'user']     $cluster_profile      = 'development',
@@ -120,6 +124,7 @@ plan pecdm::provision(
   Boolean                                       $replica              = false,
   Boolean                                       $stage                = false,
   Boolean                                       $write_inventory      = true,
+  Boolean                                       $native_ssh           = pecdm::is_windows(),
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
   Optional[String[1]]                           $project              = undef,
@@ -157,6 +162,7 @@ plan pecdm::provision(
     project              => $project,
     ssh_user             => $ssh_user,
     cloud_region         => $cloud_region,
+    native_ssh           => $native_ssh,
     extra_terraform_vars => $extra_terraform_vars
   })
 
@@ -187,9 +193,9 @@ plan pecdm::provision(
 
   if $write_inventory {
     run_plan('pecdm::utils::inventory_yaml', {
-      provider       => $provider,
-      ssh_ip_mode    => $ssh_ip_mode,
-      windows_runner => pecdm::is_windows()
+      provider    => $provider,
+      ssh_ip_mode => $ssh_ip_mode,
+      native_ssh  => $native_ssh
     })
   }
 }

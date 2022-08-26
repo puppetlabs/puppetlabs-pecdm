@@ -71,6 +71,10 @@
 #   Which region to provision infrastructure in, if not provided default will
 #   be determined by provider
 #
+# @param native_ssh
+#   Set this to true if the plan should leverage native SSH instead of Ruby's
+#   net-ssh library
+#
 plan pecdm::subplans::provision(
   Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
   Enum['development', 'production', 'user']     $cluster_profile      = 'development',
@@ -86,6 +90,7 @@ plan pecdm::subplans::provision(
   Array                                         $firewall_allow       = [],
   Hash                                          $extra_terraform_vars = {},
   Boolean                                       $replica              = false,
+  Boolean                                       $native_ssh           = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
   String[1]                                     $project              = $provider ? { 'aws' => 'pecdm', default => undef },
@@ -186,7 +191,7 @@ plan pecdm::subplans::provision(
     }
   }
 
-  $windows_runner_config = {
+  $native_ssh_config = {
     'config' => {
       'ssh' => {
         'native-ssh'  => true,
@@ -195,8 +200,8 @@ plan pecdm::subplans::provision(
     }
   }
 
-  $target_config = pecdm::is_windows() ? {
-    true  => deep_merge($_target_config, $windows_runner_config),
+  $target_config = $native_ssh ? {
+    true  => deep_merge($_target_config, $native_ssh_config),
     false => $_target_config
   }
 
