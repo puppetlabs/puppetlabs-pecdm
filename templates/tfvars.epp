@@ -1,0 +1,76 @@
+<%- | String                                        $project,
+      String                                        $user,
+      String                                        $lb_ip_mode,
+      Optional[String[1]]                           $ssh_key,
+      Optional[Integer]                             $node_count,
+      Optional[Variant[String[1],Hash]]             $instance_image,
+      Optional[Variant[String[1],Array[String[1]]]] $subnet,
+      Optional[String[1]]                           $subnet_project,
+      Optional[Boolean]                             $disable_lb,
+      String                                        $region,
+      Array                                         $firewall_allow,
+      String                                        $architecture,
+      String                                        $cluster_profile,
+      Boolean                                       $replica,
+      Integer                                       $compiler_count,
+      String                                        $provider,
+      Hash                                          $extra_terraform_vars
+| -%>
+# Mapping all the plan parameters to their corresponding Terraform vars
+#
+# Quoting is important in a Terraform vars file so we take care in preserving
+# them and converting single quotes to double.
+project         = "<%= $project %>"
+user            = "<%= $user %>"
+lb_ip_mode      = "<%= $lb_ip_mode %>"
+<% unless $ssh_key == undef { -%>
+ssh_key         = "<%= $ssh_key %>"
+<% } -%>
+region          = "<%= $region %>"
+compiler_count  = <%= $compiler_count %>
+<% unless $node_count == undef { -%>
+node_count      = <%= $node_count %>
+<% } -%>
+<% unless $instance_image == undef { -%>
+  <% if $provider == 'azure' { -%>
+    instance_image  = "<%= $instance_image['instance_image'] %>"
+    image_plan      = "<%= $instance_image['image_plan'] %>"
+  <% } else { -%>
+    instance_image  = "<%= $instance_image %>"
+  <% } -%>
+<% } -%>
+<% unless $subnet == undef { -%>
+  <% if $provider == 'google' { -%>
+subnet          = "<%= $subnet %>"
+  <% } -%>
+  <% if $provider == 'aws' { -%>
+subnet          = <%= String($subnet).regsubst('\'', '"', 'G') %>
+  <% } -%>
+<% } -%>
+<% unless $subnet_project == undef { -%>
+subnet_project  = "<%= $subnet_project %>"
+<% } -%>
+firewall_allow  = <%= String($firewall_allow).regsubst('\'', '"', 'G') %>
+architecture    = "<%= $architecture %>"
+cluster_profile = "<%= $cluster_profile %>"
+replica         = <%= $replica %>
+<% unless $disable_lb == undef { -%>
+disable_lb      = "<%= $disable_lb %>"
+<% } -%>
+<%- unless $extra_terraform_vars.empty { -%>
+  <%- $extra_terraform_vars.each | String $key, $value | { -%>
+    <%- if $value =~ String or $value =~ Boolean { -%>
+<%= $key %> = "<%= $value %>"
+    <%- } elsif $value =~ Integer { -%>
+<%= $key %> = <%= $value %>
+    <%- } elsif $value =~ Array { -%>
+<%= $key %> = <%= String($value).regsubst('\'', '"', 'G')  %>
+    <%- } elsif $value =~ Hash { -%>
+<%= $key %> = {
+      <%- $value.each | String $k, String $v | { -%>
+  "<%= $k %>" = "<%= $v %>"
+      <%- } -%>
+}
+    <%- } -%>
+  <%- } -%>
+<%- } -%>

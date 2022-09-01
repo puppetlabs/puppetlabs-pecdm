@@ -12,6 +12,7 @@ This project was referred to as **autope** prior to October 15, 2021.
     * [Setup requirements](#setup-requirements)
     * [Beginning with pecdm](#beginning-with-pecdm)
 3. [Usage - Configuration options and additional functionality](#usage)
+    * [Adding user specific deployment requirements](#adding-user-specific-deployment-requirements)
 4. [Limitations - OS compatibility, etc.](#limitations)
 5. [Development - Guide for contributing to the module](#development)
 
@@ -59,7 +60,7 @@ Types of things you'll be paying your cloud provider for
 * [Git Installed](https://git-scm.com/downloads)
 * [Terraform Installed](https://www.terraform.io/downloads.html)
 
-## Beginning with pecdm
+### Beginning with pecdm
 
 1. Clone this repository: `git clone https://github.com/puppetlabs/puppetlabs-pecdm.git && cd puppetlabs-pecdm`
 2. Install module dependencies: `bolt module install --no-resolve` (manually manages modules to take advantage of functionality that allows for additional content to be deployed that does not adhere to the Puppet Module packaging format, e.g. Terraform modules)
@@ -72,15 +73,21 @@ Types of things you'll be paying your cloud provider for
 
 * `lb_ip_mode`: Default is **private**, which will result in load balancer creation that is only accessible from within the VPC where PE is provisioned. To access the load balancer your agents will need to reside within the same VPC as PE or have its VPC peered so private IPs can be routed between PE and the agent's VPC. If you set this parameter to **public** on AWS then the ELB creation will associate a public IP, potentially accessible from the internet. On GCP, setting parameter to **public** will result in PE deployment failure due to GCP not providing DNS entires for internet facing load balancers.
 
-**Windows Native SSH workaround
+**Windows Native SSH workaround**
 
-Due to bolt being [unable to authenticate with ed25519 keys over SSH transport on Windows](https://puppet.com/docs/bolt/latest/bolt_known_issues.html#unable-to-authenticate-with-ed25519-keys-over-ssh-transport-on-windows) the [Native ssh transport](https://puppet.com/docs/bolt/latest/experimental_features.html#native-ssh-transport)
+Due to bolt being [unable to authenticate with ed25519 keys over SSH transport on Windows](https://puppet.com/docs/bolt/latest/bolt_known_issues.html#unable-to-authenticate-with-ed25519-keys-over-ssh-transport-on-windows) you must utilize the [Native ssh transport](https://puppet.com/docs/bolt/latest/experimental_features.html#native-ssh-transport) when running pecdm from a Windows workstation. This is done automatically on provisioning if your current project directory lacks an inventory.yaml. If you choose to maintain your own inventory.yaml file than add the below configuration example.
 
 ```
 ssh:
   native-ssh: true
   ssh-command: 'ssh' 
 ```
+
+### Adding user specific deployment requirements
+
+There are an infinite number of requirements and options for provisioning and deployment to the cloud that each individual has, it is impossible for pecdm or peadm to support them all and they are often not applicable from one user to another so inappropriate to be added to pecdm. To adapt to this need we develop both modules in a way that makes it possible to compose their individual subcomponents into your own specific implementation.
+
+An example repository which illustrates this composability can be found at [ody/example-pe_provisioner](https://github.com/ody/example-pe_provisioner/tree/main/plans). This Bolt Project models a hypothetical Example organization which is provisioning PE on Google Cloud Platform and uses the individual subplans in pecdm sandwiched around some custom code and a [Terraform module](https://github.com/ody/terraform-example-pe_dns) that will create DNS records for each provisioned component in Cloud DNS using a user owned domain.  
 
 **Example: params.json**
 
@@ -135,6 +142,8 @@ The number of options required are reduced when destroying a stack
 `bolt plan run pecdm::destroy provider=aws`
 
 ### Upgrading examples
+
+**Upgrade is currently non-functional**
 
 #### Upgrade a AWS stack
 

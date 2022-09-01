@@ -1,3 +1,6 @@
+# Creates a temporary file on the local machine which initiated pecdm and cleans
+# it up when the code requiring the file completes
+#
 require 'tempfile'
 Puppet::Functions.create_function(:'pecdm::with_tempfile_containing') do
   dispatch :with_tempfile_containing do
