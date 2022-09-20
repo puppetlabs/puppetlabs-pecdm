@@ -11,7 +11,7 @@ mod 'WhatsARanjit-node_manager', '0.7.5'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '22a7ccbfcad6c8f4068b1d907824b096a71121e9'
+    ref: '57f5a9b38b2dbb17e3951b363a24ea9f41d9d464'
 
 # External non-Puppet content
 #
@@ -25,15 +25,15 @@ mod 'puppetlabs-peadm',
 #
 mod 'terraform-google_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-google-pe_arch.git',
-    ref:          '651c95fb058d050476f496234ad97467b349d937',
+    ref:          '3be30239a12e7c27efdd00f5213de804d03c9b17',
     install_path: '.terraform'
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          '9b6e8ae8aacfacb4046077c99f70da6b8f4dbf64',
+    ref:          '9ee7cc4561c06a98feb62b809ee3139dc4e8f41a',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-azure-pe_arch.git',
-    ref:          '0905d4c9e85ac3f12466bb6eddcd0de55fd6d1d5',
+    ref:          '38ae44a6bbc73a163a399107f905719a148abc03',
     install_path: '.terraform'
