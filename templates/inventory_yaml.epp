@@ -60,19 +60,19 @@ groups:
         dir: .terraform/aws_pe_arch
         resource_type: aws_instance.server
         target_mapping:
-          name: public_dns
+          name: private_dns
           uri: <%= $uri_param %>
       - _plugin: terraform
         dir: .terraform/aws_pe_arch
         resource_type: aws_instance.compiler
         target_mapping:
-          name: public_dns
+          name: private_dns
           uri: <%= $uri_param %>
       - _plugin: terraform
         dir: .terraform/aws_pe_arch
         resource_type: aws_instance.psql
         target_mapping:
-          name: public_dns
+          name: private_dns
           uri: <%= $uri_param %>
     <%- } -%>
     <%- if $provider == 'azure' { -%>
@@ -110,7 +110,7 @@ groups:
         dir: .terraform/aws_pe_arch
         resource_type: aws_instance.node
         target_mapping:
-          name: public_dns
+          name: private_dns
           uri: <%= $uri_param %>
     <%- } -%>
     <%- if $provider == 'azure' { -%>

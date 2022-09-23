@@ -6,8 +6,7 @@ plan pecdm::upgrade(
   Enum['google', 'aws', 'azure']       $provider,
   String[1]                            $ssh_user            = $provider ? { 'aws' => 'centos', default => undef },
 ) {
-
-  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
+  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local' })
 
   $tf_dir = ".terraform/${provider}_pe_arch"
 
@@ -19,41 +18,41 @@ plan pecdm::upgrade(
         'user'           => $ssh_user,
         'host-key-check' => false,
         'run-as'         => 'root',
-        'tty'            => true
-      }
-    }
+        'tty'            => true,
+      },
+    },
   }
 
-  $inventory = ['server', 'psql', 'compiler' ].reduce({}) |Hash $memo, String $i| {
-    $memo + { $i => resolve_references({
-        '_plugin'        => 'terraform',
-        'dir'            => $tf_dir,
-        'resource_type'  => $provider ? {
-          'google' => "google_compute_instance.${i}",
-          'aws'    => "aws_instance.${i}",
-          'azure'  => "azurerm_linux_virtual_machine.${i}",
-        },
-        'target_mapping' => $provider ? {
-          'google' => {
-            'name' => 'metadata.internalDNS',
-            'uri'  => 'network_interface.0.access_config.0.nat_ip',
+  $inventory = ['server', 'psql', 'compiler'].reduce( {}) |Hash $memo, String $i| {
+    $memo + { $i => resolve_references( {
+          '_plugin'        => 'terraform',
+          'dir'            => $tf_dir,
+          'resource_type'  => $provider ? {
+            'google' => "google_compute_instance.${i}",
+            'aws'    => "aws_instance.${i}",
+            'azure'  => "azurerm_linux_virtual_machine.${i}",
           },
-          'aws' => {
-            'name' => 'private_dns',
-            'uri'  => 'public_ip',
+          'target_mapping' => $provider ? {
+            'google' => {
+              'name' => 'metadata.internalDNS',
+              'uri'  => 'network_interface.0.access_config.0.nat_ip',
+            },
+            'aws' => {
+              'name' => 'private_dns',
+              'uri'  => 'public_ip',
+            },
+            'azure' => {
+              'name' => 'tags.internal_fqdn',
+              'uri'  => 'public_ip_address',
+            }
           },
-          'azure' => {
-            'name' => 'tags.internal_fqdn',
-            'uri'  => 'public_ip_address',
-          }
-        }
       })
     }
   }
 
   $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
-  }}
+      Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
+  } }
 
   $compiler_pool_adress = $terraform_output['pool']['value']
   $params = pecdm::peadm_params_from_configuration($inventory, $compiler_pool_adress, $version)

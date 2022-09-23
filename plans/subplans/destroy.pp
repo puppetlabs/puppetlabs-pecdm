@@ -11,7 +11,6 @@ plan pecdm::subplans::destroy(
   Enum['google', 'aws', 'azure']  $provider,
   String[1]                       $cloud_region = $provider ? { 'azure' => 'westus2' ,'aws' => 'us-west-2', default => 'us-west1' }
 ) {
-
   out::message("Destroying Puppet Enterprise deployment on ${provider}")
 
   $tf_dir = ".terraform/${provider}_pe_arch"

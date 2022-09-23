@@ -95,9 +95,8 @@ plan pecdm::subplans::provision(
   Enum['google', 'aws', 'azure']                $provider,
   String[1]                                     $project              = $provider ? { 'aws' => 'pecdm', default => undef },
   String[1]                                     $ssh_user             = $provider ? { 'aws' => 'ec2-user', default => undef },
-  String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }
+  String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' } # lint:ignore:140chars
 ) {
-
   if $provider == 'google' {
     $_instance_image = $instance_image
 
@@ -138,23 +137,23 @@ plan pecdm::subplans::provision(
 
   # Constructs a tfvars file to be used by Terraform
   $tfvars = epp('pecdm/tfvars.epp', {
-    project              => $project,
-    user                 => $ssh_user,
-    lb_ip_mode           => $lb_ip_mode,
-    ssh_key              => $ssh_pub_key_file,
-    region               => $cloud_region,
-    node_count           => $node_count,
-    instance_image       => $_instance_image,
-    subnet               => $subnet,
-    subnet_project       => $subnet_project,
-    firewall_allow       => $firewall_allow,
-    architecture         => $architecture,
-    cluster_profile      => $cluster_profile,
-    replica              => $replica,
-    compiler_count       => $compiler_count,
-    disable_lb           => $disable_lb,
-    provider             => $provider,
-    extra_terraform_vars => $extra_terraform_vars
+      project              => $project,
+      user                 => $ssh_user,
+      lb_ip_mode           => $lb_ip_mode,
+      ssh_key              => $ssh_pub_key_file,
+      region               => $cloud_region,
+      node_count           => $node_count,
+      instance_image       => $_instance_image,
+      subnet               => $subnet,
+      subnet_project       => $subnet_project,
+      firewall_allow       => $firewall_allow,
+      architecture         => $architecture,
+      cluster_profile      => $cluster_profile,
+      replica              => $replica,
+      compiler_count       => $compiler_count,
+      disable_lb           => $disable_lb,
+      provider             => $provider,
+      extra_terraform_vars => $extra_terraform_vars
   })
 
   out::message("Starting infrastructure provisioning for a ${architecture} deployment of Puppet Enterprise")
@@ -186,18 +185,18 @@ plan pecdm::subplans::provision(
         'user'           => $ssh_user,
         'host-key-check' => false,
         'run-as'         => 'root',
-        'tty'            => true
-      }
-    }
+        'tty'            => true,
+      },
+    },
   }
 
   $native_ssh_config = {
     'config' => {
       'ssh' => {
         'native-ssh'  => true,
-        'ssh-command' => 'ssh'
-      }
-    }
+        'ssh-command' => 'ssh',
+      },
+    },
   }
 
   $target_config = $native_ssh ? {
@@ -209,38 +208,38 @@ plan pecdm::subplans::provision(
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
   # different name and uri parameters to allow for the target's SSH address to
   # differ from the names used to configure Puppet on the internal interfaces
-  $inventory = ['server', 'psql', 'compiler', 'node'].reduce({}) |Hash $memo, String $i| {
+  $inventory = ['server', 'psql', 'compiler', 'node'].reduce( {}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references( {
-        '_plugin'        => 'terraform',
-        'dir'            => $tf_dir,
-        'resource_type'  => $provider ? {
-          'google' => "google_compute_instance.${i}",
-          'aws'    => "aws_instance.${i}",
-          'azure'  => "azurerm_linux_virtual_machine.${i}",
-        },
-        'target_mapping' => $provider ? {
-          'google' => {
-            'name'         => 'metadata.internalDNS',
-            'uri'          => $ssh_ip_mode ? {
-              'private' => 'network_interface.0.network_ip',
-              default   => 'network_interface.0.access_config.0.nat_ip',
+          '_plugin'        => 'terraform',
+          'dir'            => $tf_dir,
+          'resource_type'  => $provider ? {
+            'google' => "google_compute_instance.${i}",
+            'aws'    => "aws_instance.${i}",
+            'azure'  => "azurerm_linux_virtual_machine.${i}",
+          },
+          'target_mapping' => $provider ? {
+            'google' => {
+              'name'         => 'metadata.internalDNS',
+              'uri'          => $ssh_ip_mode ? {
+                'private' => 'network_interface.0.network_ip',
+                default   => 'network_interface.0.access_config.0.nat_ip',
+              },
+            },
+            'aws' => {
+              'name' => 'private_dns',
+              'uri'  => $ssh_ip_mode ? {
+                'private' => 'private_ip',
+                default   => 'public_ip',
+              },
+            },
+            'azure' => {
+              'name' => 'tags.internalDNS',
+              'uri'  => $ssh_ip_mode ? {
+                'private' => 'private_ip_address',
+                default   => 'public_ip_address',
+              },
             }
           },
-          'aws' => {
-            'name' => 'private_dns',
-            'uri'  => $ssh_ip_mode ? {
-              'private' => 'private_ip',
-              default   => 'public_ip',
-            }
-          },
-          'azure' => {
-            'name' => 'tags.internalDNS',
-            'uri'  => $ssh_ip_mode ? {
-              'private' => 'private_ip_address',
-              default   => 'public_ip_address',
-            }
-          }
-        }
       })
     }
   }
@@ -248,13 +247,13 @@ plan pecdm::subplans::provision(
   # Create Target objects from our previously generated inventory so that calls
   # to the get_target(s) function returns appropriate data
   $pecdm_targets = $inventory.map |$f, $v| { $v.map |$target| {
-    Target.new($target.merge($target_config))
+      Target.new($target.merge($target_config))
   } }.flatten
 
   $results = {
     'pe_inventory'          => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node') },
     'agent_inventory'       => $inventory['node'],
-    'compiler_pool_address' => $tf_apply['pool']['value']
+    'compiler_pool_address' => $tf_apply['pool']['value'],
   }
 
   out::message("Finished provisioning infrastructure for a ${architecture} deployment of Puppet Enterprise")

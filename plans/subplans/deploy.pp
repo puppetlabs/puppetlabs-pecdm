@@ -57,7 +57,7 @@ plan pecdm::subplans::deploy(
     'dns_alt_names'           => peadm::flatten_compact(['puppet', $compiler_pool_address] + $dns_alt_names).delete(''),
     'compiler_pool_address'   => $compiler_pool_address,
     'download_mode'           => $download_mode,
-    'version'                 => $version
+    'version'                 => $version,
   }
 
   # TODO: make this print only when user specifies --verbose

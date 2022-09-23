@@ -131,7 +131,6 @@ plan pecdm::provision(
   Optional[String[1]]                           $ssh_user             = undef,
   Optional[String[1]]                           $cloud_region         = undef
 ) {
-
   if $node_count and $lb_ip_mode != 'private' {
     fail_plan('The provisioning of agent nodes requires lb_ip_mode to be set to private')
   }
@@ -145,46 +144,46 @@ plan pecdm::provision(
   }
 
   $provisioned = run_plan('pecdm::subplans::provision', {
-    architecture         => $architecture,
-    cluster_profile      => $cluster_profile,
-    compiler_count       => $compiler_count,
-    ssh_pub_key_file     => $ssh_pub_key_file,
-    node_count           => $node_count,
-    instance_image       => $instance_image,
-    subnet               => $subnet,
-    subnet_project       => $subnet_project,
-    disable_lb           => $disable_lb,
-    ssh_ip_mode          => $ssh_ip_mode,
-    lb_ip_mode           => $lb_ip_mode,
-    firewall_allow       => $firewall_allow,
-    replica              => $replica,
-    provider             => $provider,
-    project              => $project,
-    ssh_user             => $ssh_user,
-    cloud_region         => $cloud_region,
-    native_ssh           => $native_ssh,
-    extra_terraform_vars => $extra_terraform_vars
+      architecture         => $architecture,
+      cluster_profile      => $cluster_profile,
+      compiler_count       => $compiler_count,
+      ssh_pub_key_file     => $ssh_pub_key_file,
+      node_count           => $node_count,
+      instance_image       => $instance_image,
+      subnet               => $subnet,
+      subnet_project       => $subnet_project,
+      disable_lb           => $disable_lb,
+      ssh_ip_mode          => $ssh_ip_mode,
+      lb_ip_mode           => $lb_ip_mode,
+      firewall_allow       => $firewall_allow,
+      replica              => $replica,
+      provider             => $provider,
+      project              => $project,
+      ssh_user             => $ssh_user,
+      cloud_region         => $cloud_region,
+      native_ssh           => $native_ssh,
+      extra_terraform_vars => $extra_terraform_vars
   })
 
   unless $stage {
     run_plan('pecdm::subplans::deploy', {
-      inventory              => $provisioned['pe_inventory'],
-      compiler_pool_address  => $provisioned['compiler_pool_address'],
-      download_mode          => $download_mode,
-      version                => $version,
-      console_password       => $_console_password.unwrap,
-      dns_alt_names          => $dns_alt_names,
-      extra_peadm_params     => $extra_peadm_params
+        inventory              => $provisioned['pe_inventory'],
+        compiler_pool_address  => $provisioned['compiler_pool_address'],
+        download_mode          => $download_mode,
+        version                => $version,
+        console_password       => $_console_password.unwrap,
+        dns_alt_names          => $dns_alt_names,
+        extra_peadm_params     => $extra_peadm_params
     })
 
     if $node_count {
       $agent_targets = get_targets(getvar('provisioned.agent_inventory').map |$target| {
-        $target['name']
+          $target['name']
       }.flatten())
 
       run_plan('pecdm::utils::deploy_agents', $agent_targets, {
-        primary_host          => getvar('provisioned.pe_inventory.server.0.name'),
-        compiler_pool_address => $provisioned['compiler_pool_address'],
+          primary_host          => getvar('provisioned.pe_inventory.server.0.name'),
+          compiler_pool_address => $provisioned['compiler_pool_address'],
       })
     }
   } else {
@@ -193,9 +192,9 @@ plan pecdm::provision(
 
   if $write_inventory {
     run_plan('pecdm::utils::inventory_yaml', {
-      provider    => $provider,
-      ssh_ip_mode => $ssh_ip_mode,
-      native_ssh  => $native_ssh
+        provider    => $provider,
+        ssh_ip_mode => $ssh_ip_mode,
+        native_ssh  => $native_ssh
     })
   }
 }
