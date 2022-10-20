@@ -7,6 +7,8 @@ mod 'puppetlabs-bolt_shim', '0.4.0'
 mod 'puppetlabs-terraform', '0.6.1'
 mod 'puppetlabs-inifile', '5.2.0'
 mod 'WhatsARanjit-node_manager', '0.7.5'
+mod 'puppetlabs-ruby_task_helper', '0.6.1'
+mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
 
 # Modules from Git
 mod 'puppetlabs-peadm',
