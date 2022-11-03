@@ -34,6 +34,20 @@
 #   The cloud image that is used for new instance provisioning, format differs
 #   depending on provider
 #
+# @param windows_node_count
+#   Number of Windows agent nodes to provision and enroll into deployment for testing
+#   and development
+#
+# @param windows_instance_image
+#   The cloud image that is used for new Windows instance provisioning, format differs
+#   depending on provider
+#
+# @param windows_user
+#   The adminstrative user account created on Windows nodes nodes allowing for WINRM connections
+#
+# @param windows_password
+#   The adminstrative user account password on Windows nodes nodes allowing for WINRM connections
+#
 # @param subnet
 #   Name or ID of an existing subnet to attach newly provisioned infrastructure
 #   to
@@ -103,35 +117,38 @@
 #   net-ssh library
 #
 plan pecdm::provision(
-  Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
-  Enum['development', 'production', 'user']     $cluster_profile      = 'development',
-  Enum['direct', 'bolthost']                    $download_mode        = 'direct',
-  String[1]                                     $version              = '2019.8.10',
-  Integer                                       $compiler_count       = 1,
-  Optional[String[1]]                           $ssh_pub_key_file     = undef,
-  Optional[String[1]]                           $console_password     = undef,
-  Optional[Integer]                             $node_count           = undef,
-  Optional[Variant[String[1],Hash]]             $instance_image       = undef,
-  Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
-  Optional[String[1]]                           $subnet_project       = undef,
-  Optional[Boolean]                             $disable_lb           = undef,
-  Enum['private', 'public']                     $ssh_ip_mode          = 'public',
-  Enum['private', 'public']                     $lb_ip_mode           = 'private',
-  Array                                         $firewall_allow       = [],
-  Array                                         $dns_alt_names        = [],
-  Hash                                          $extra_peadm_params   = {},
-  Hash                                          $extra_terraform_vars = {},
-  Boolean                                       $replica              = false,
-  Boolean                                       $stage                = false,
-  Boolean                                       $write_inventory      = true,
-  Boolean                                       $native_ssh           = pecdm::is_windows(),
+  Enum['xlarge', 'large', 'standard']           $architecture           = 'standard',
+  Enum['development', 'production', 'user']     $cluster_profile        = 'development',
+  Enum['direct', 'bolthost']                    $download_mode          = 'direct',
+  String[1]                                     $version                = '2019.8.10',
+  Integer                                       $compiler_count         = 1,
+  Optional[String[1]]                           $ssh_pub_key_file       = undef,
+  Optional[String[1]]                           $console_password       = undef,
+  Optional[Integer]                             $node_count             = undef,
+  Optional[Variant[String[1],Hash]]             $instance_image         = undef,
+  Optional[Integer]                             $windows_node_count     = undef,
+  Optional[Variant[String[1],Hash]]             $windows_instance_image = undef,
+  Optional[String[1]]                           $windows_password       = undef,
+  Optional[string[1]]                           $windows_user           = undef,
+  Optional[Variant[String[1],Array[String[1]]]] $subnet                 = undef,
+  Optional[String[1]]                           $subnet_project         = undef,
+  Optional[Boolean]                             $disable_lb             = undef,
+  Enum['private', 'public']                     $ssh_ip_mode            = 'public',
+  Enum['private', 'public']                     $lb_ip_mode             = 'private',
+  Array                                         $firewall_allow         = [],
+  Array                                         $dns_alt_names          = [],
+  Hash                                          $extra_peadm_params     = {},
+  Hash                                          $extra_terraform_vars   = {},
+  Boolean                                       $replica                = false,
+  Boolean                                       $stage                  = false,
+  Boolean                                       $write_inventory        = true,
+  Boolean                                       $native_ssh             = pecdm::is_windows(),
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
-  Optional[String[1]]                           $project              = undef,
-  Optional[String[1]]                           $ssh_user             = undef,
-  Optional[String[1]]                           $cloud_region         = undef
+  Optional[String[1]]                           $project                = undef,
+  Optional[String[1]]                           $ssh_user               = undef,
+  Optional[String[1]]                           $cloud_region           = undef
 ) {
-
   if $node_count and $lb_ip_mode != 'private' {
     fail_plan('The provisioning of agent nodes requires lb_ip_mode to be set to private')
   }
@@ -143,27 +160,40 @@ plan pecdm::provision(
       'sensitive' => true, 'default' => 'puppetlabs'
     )
   }
+  if $windows_node_count {
+    if $windows_password {
+      $_windows_password = Sensitive($windows_password)
+    } else {
+      $_windows_password = prompt('Input Windows Node password or accept default. [Pupp3tL@b5P0rtl@nd!]',
+        'sensitive' => true, 'default' => 'Pupp3tL@b5P0rtl@nd!'
+      )
+    }
+  }
 
   $provisioned = run_plan('pecdm::subplans::provision', {
-    architecture         => $architecture,
-    cluster_profile      => $cluster_profile,
-    compiler_count       => $compiler_count,
-    ssh_pub_key_file     => $ssh_pub_key_file,
-    node_count           => $node_count,
-    instance_image       => $instance_image,
-    subnet               => $subnet,
-    subnet_project       => $subnet_project,
-    disable_lb           => $disable_lb,
-    ssh_ip_mode          => $ssh_ip_mode,
-    lb_ip_mode           => $lb_ip_mode,
-    firewall_allow       => $firewall_allow,
-    replica              => $replica,
-    provider             => $provider,
-    project              => $project,
-    ssh_user             => $ssh_user,
-    cloud_region         => $cloud_region,
-    native_ssh           => $native_ssh,
-    extra_terraform_vars => $extra_terraform_vars
+    architecture           => $architecture,
+    cluster_profile        => $cluster_profile,
+    compiler_count         => $compiler_count,
+    ssh_pub_key_file       => $ssh_pub_key_file,
+    node_count             => $node_count,
+    instance_image         => $instance_image,
+    windows_node_count     => $windows_node_count,
+    windows_instance_image => $windows_instance_image,
+    subnet                 => $subnet,
+    subnet_project         => $subnet_project,
+    disable_lb             => $disable_lb,
+    ssh_ip_mode            => $ssh_ip_mode,
+    lb_ip_mode             => $lb_ip_mode,
+    firewall_allow         => $firewall_allow,
+    replica                => $replica,
+    provider               => $provider,
+    project                => $project,
+    ssh_user               => $ssh_user,
+    windows_user           => $windows_user,
+    windows_password       => $_windows_password,
+    cloud_region           => $cloud_region,
+    native_ssh             => $native_ssh,
+    extra_terraform_vars   => $extra_terraform_vars
   })
 
   unless $stage {
@@ -181,8 +211,14 @@ plan pecdm::provision(
       $agent_targets = get_targets(getvar('provisioned.agent_inventory').map |$target| {
         $target['name']
       }.flatten())
-
-      run_plan('pecdm::utils::deploy_agents', $agent_targets, {
+    }
+    if $windows_node_count {
+      $windows_agent_targets = get_targets(getvar('provisioned.windows_agent_inventory').map |$target| {
+        $target['name']
+      }.flatten())
+    }
+    if $node_count or $windows_node_count {
+      run_plan('pecdm::utils::deploy_agents', $agent_targets + $windows_agent_targets, {
         primary_host          => getvar('provisioned.pe_inventory.server.0.name'),
         compiler_pool_address => $provisioned['compiler_pool_address'],
       })
@@ -193,9 +229,9 @@ plan pecdm::provision(
 
   if $write_inventory {
     run_plan('pecdm::utils::inventory_yaml', {
-      provider    => $provider,
-      ssh_ip_mode => $ssh_ip_mode,
-      native_ssh  => $native_ssh
+      provider         => $provider,
+      ssh_ip_mode      => $ssh_ip_mode,
+      native_ssh       => $native_ssh,
     })
   }
 }

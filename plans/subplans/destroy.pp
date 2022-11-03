@@ -28,8 +28,10 @@ plan pecdm::subplans::destroy(
     destroy        = true
     <% } -%>
     # Required parameters which values are irrelevant on destroy
-    project        = "oppenheimer"
-    user           = "oppenheimer"
+    project          = "oppenheimer"
+    user             = "oppenheimer"
+    windows_user     = "oppenheimer"
+    windows_password = "oppenheimer"
     |TFVARS
 
   $tfvars = inline_epp($vars_template)
