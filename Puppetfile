@@ -13,7 +13,7 @@ mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '57f5a9b38b2dbb17e3951b363a24ea9f41d9d464'
+    ref: '1affd80d3829547670defd92f4863b3e61461369'
 
 # External non-Puppet content
 #
@@ -37,5 +37,5 @@ mod 'terraform-aws_pe_arch',
 
 mod 'terraform-azure_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-azure-pe_arch.git',
-    ref:          '2c7e37f75ace3c50ad6622d6e2520c12ba3e23c6',
+    ref:          'f46147cd38476755ece59392fba4e5e60f3bc26e',
     install_path: '.terraform'
