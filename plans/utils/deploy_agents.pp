@@ -19,7 +19,11 @@ plan pecdm::utils::deploy_agents(
     run_task('peadm::agent_install', $target,
       'server' => $compiler_pool_address,
       'install_flags' => [
-        '--puppet-service-ensure', 'stopped',
+        $target.transport ? {
+          'winrm'  => '-PuppetServiceEnsure',
+          default  => '--puppet-service-ensure'
+        },
+        'stopped',
         "agent:certname=${target.name}",
       ],
     )
