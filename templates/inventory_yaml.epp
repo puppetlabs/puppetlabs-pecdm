@@ -121,3 +121,33 @@ groups:
           name: tags.internalDNS
           uri: <%= $uri_param %>
     <%- } -%>
+      - name: windows_agent_nodes
+    targets:
+    <%- if $provider == 'google' { -%>
+      - _plugin: terraform
+        dir: .terraform/google_pe_arch
+        resource_type: google_compute_instance.windows_node
+        target_mapping:
+          name: metadata.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'aws' { -%>
+      - _plugin: terraform
+        dir: .terraform/aws_pe_arch
+        resource_type: aws_instance.windows_node
+        target_mapping:
+          name: public_dns
+          uri: <%= $uri_param %>
+    <%- } -%>
+    <%- if $provider == 'azure' { -%>
+      - _plugin: terraform
+        dir: .terraform/azure_pe_arch
+        resource_type: azurerm_windows_virtual_machine.windows_node
+        target_mapping:
+          name: tags.internalDNS
+          uri: <%= $uri_param %>
+    <%- } -%>
+    config:
+      transport: winrm
+      winrm:
+        ssl: false   

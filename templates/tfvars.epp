@@ -1,9 +1,13 @@
 <%- | String                                        $project,
       String                                        $user,
+      String                                        $windows_user,
+      String                                        $windows_password,
       String                                        $lb_ip_mode,
       Optional[String[1]]                           $ssh_key,
       Optional[Integer]                             $node_count,
+      Optional[Integer]                             $windows_node_count,
       Optional[Variant[String[1],Hash]]             $instance_image,
+      Optional[Variant[String[1],Hash]]             $windows_instance_image,
       Optional[Variant[String[1],Array[String[1]]]] $subnet,
       Optional[String[1]]                           $subnet_project,
       Optional[Boolean]                             $disable_lb,
@@ -22,6 +26,12 @@
 # them and converting single quotes to double.
 project         = "<%= $project %>"
 user            = "<%= $user %>"
+<% unless $windows_user == undef { -%>
+windows_user    = "<%= $windows_user %>"
+<% } -%>
+<% unless $windows_password == undef { -%>
+windows_password = "<%= $windows_password %>"
+<% } -%>
 lb_ip_mode      = "<%= $lb_ip_mode %>"
 <% unless $ssh_key == undef { -%>
 ssh_key         = "<%= $ssh_key %>"
@@ -31,12 +41,23 @@ compiler_count  = <%= $compiler_count %>
 <% unless $node_count == undef { -%>
 node_count      = <%= $node_count %>
 <% } -%>
+<% unless $windows_node_count == undef { -%>
+windows_node_count      = <%= $windows_node_count %>
+<% } -%>
 <% unless $instance_image == undef { -%>
   <% if $provider == 'azure' { -%>
     instance_image  = "<%= $instance_image['instance_image'] %>"
     image_plan      = "<%= $instance_image['image_plan'] %>"
   <% } else { -%>
     instance_image  = "<%= $instance_image %>"
+  <% } -%>
+<% } -%>
+<% unless $windows_instance_image == undef { -%>
+  <% if $provider == 'azure' { -%>
+    instance_image  = "<%= $windows_instance_image['instance_image'] %>"
+    image_plan      = "<%= $windows_instance_image['image_plan'] %>"
+  <% } else { -%>
+    instance_image  = "<%= $widnwos_instance_image %>"
   <% } -%>
 <% } -%>
 <% unless $subnet == undef { -%>
