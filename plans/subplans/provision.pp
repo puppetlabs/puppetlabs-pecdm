@@ -98,8 +98,7 @@ plan pecdm::subplans::provision(
   Optional[Variant[String[1],Hash]]             $instance_image         = undef,
   Optional[Integer]                             $windows_node_count     = undef,
   Optional[Variant[String[1],Hash]]             $windows_instance_image = undef,
-  Optional[String[1]]                           $windows_user           = 'windows',
-  Optional[Sensitive[String[1]]]                $windows_password,
+  Optional[Sensitive[String[1]]]                $windows_password       = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnet                 = undef,
   Optional[String[1]]                           $subnet_project         = undef,
   Optional[Boolean]                             $disable_lb             = undef,
@@ -113,30 +112,42 @@ plan pecdm::subplans::provision(
   Enum['google', 'aws', 'azure']                $provider,
   String[1]                                     $project                = $provider ? { 'aws' => 'pecdm', default => undef },
   String[1]                                     $ssh_user               = $provider ? { 'aws' => 'ec2-user', default => undef },
+  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', 'aws' => undef, 'google' => undef },
   String[1]                                     $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }
 ) {
   if $provider == 'google' {
-    $_instance_image = $instance_image
-    $_windows_instance_image = undef #$instance_image when google windows client enabled
-
     if $subnet.is_a(Array) {
       fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
     }
     if $lb_ip_mode == 'public' {
       fail_plan('Setting lb_ip_mode parameter to public with the GCP provider is not currently supported due to lack of GCP provided DNS')
     }
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+      fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
+    }
+
+    $_instance_image         = $instance_image
+    $_windows_instance_image = undef # While provider doesn't support Windows Agent nodes, ensure this is always undef
   }
 
   if $provider == 'aws' {
-    $_instance_image = $instance_image
-    $_windows_instance_image = undef #$instance_image when aws windows client enabled
-
     if $subnet_project {
       fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
     }
+
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+      fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
+    }
+
+    $_instance_image         = $instance_image
+    $_windows_instance_image = undef # While provider doesn't support Windows Agent nodes, ensure this is always undef
   }
 
   if $provider == 'azure' {
+    if $subnet {
+      fail_plan('Azure provider does not currently support attachment to existing networks')
+    }
+
     if $instance_image.is_a(String) {
       $_instance_image = { 'instance_image' => $instance_image, 'image_plan' => '' }
     } else {
@@ -145,10 +156,7 @@ plan pecdm::subplans::provision(
     if $windows_instance_image.is_a(String) {
       $_windows_instance_image = { 'windows_instance_image' => $windows_instance_image, 'image_plan' => '' }
     } else {
-      $_windows_instance_image = $instance_image
-    }
-    if $subnet {
-      fail_plan('Azure provider does not currently support attachment to existing networks')
+      $_windows_instance_image = $windows_instance_image
     }
   }
 
@@ -235,21 +243,21 @@ plan pecdm::subplans::provision(
   $windows_target_config = {
     'config' => {
       'transport' => 'winrm',
-        'winrm' => {
-        'user' => $windows_user,
-        'password' => $windows_password.unwrap,
-        'ssl' => false,
+      'winrm'     => {
+        'user'            => $windows_user,
+        'password'        => $windows_password.unwrap,
+        'ssl'             => false,
         'connect-timeout' => 30,
-        },
       },
-    }
+    },
+  }
 
   # Generate an inventory of freshly provisioned nodes using the parameters that
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
   # different name and uri parameters to allow for the target's SSH address to
   # differ from the names used to configure Puppet on the internal interfaces
   $inventory = ['server', 'psql', 'compiler', 'node', 'windows_node'].reduce({}) |Hash $memo, String $i| {
-    $memo + { $i => resolve_references( {
+    $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
         'resource_type'  => $provider ? {
@@ -258,7 +266,7 @@ plan pecdm::subplans::provision(
           'azure'  => $i ? {
             'windows_node' => "azurerm_windows_virtual_machine.${i}",
             default        => "azurerm_linux_virtual_machine.${i}",
-        },
+          },
         },
         'target_mapping' => $provider ? {
           'google' => {
@@ -287,17 +295,15 @@ plan pecdm::subplans::provision(
     }
   }
 
-
-
   # Create Target objects from our previously generated inventory so that calls
   # to the get_target(s) function returns appropriate data
   $pecdm_targets = $inventory.map |$f, $v| { $v.map |$target| {
     if $f == 'windows_node' {
-    Target.new($target.merge($windows_target_config))
+      Target.new($target.merge($windows_target_config))
     } else {
-    Target.new($target.merge($target_config))
+      Target.new($target.merge($target_config))
     }
-  } }.flatten
+  }}.flatten
 
   $results = {
     'pe_inventory'            => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node' and $type != 'windows_node') },
