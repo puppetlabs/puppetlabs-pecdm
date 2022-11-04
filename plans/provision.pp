@@ -160,6 +160,7 @@ plan pecdm::provision(
       'sensitive' => true, 'default' => 'puppetlabs'
     )
   }
+
   if $windows_node_count {
     if $windows_password {
       $_windows_password = Sensitive($windows_password)
@@ -167,6 +168,11 @@ plan pecdm::provision(
       $_windows_password = prompt('Input Windows Node password or accept default. [Pupp3tL@b5P0rtl@nd!]',
         'sensitive' => true, 'default' => 'Pupp3tL@b5P0rtl@nd!'
       )
+    }
+  } else {
+    $_windows_password = undef # prevents unknown variable errors when not provisioning Windows Agents
+    if $windows_password {
+      out::message('Windows node password reset to undef because no Windows Agents are to be provisioned')
     }
   }
 
