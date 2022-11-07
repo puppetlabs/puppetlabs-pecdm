@@ -129,7 +129,7 @@ plan pecdm::provision(
   Optional[Integer]                             $windows_node_count     = undef,
   Optional[Variant[String[1],Hash]]             $windows_instance_image = undef,
   Optional[String[1]]                           $windows_password       = undef,
-  Optional[string[1]]                           $windows_user           = undef,
+  Optional[String[1]]                           $windows_user           = undef,
   Optional[Variant[String[1],Array[String[1]]]] $subnet                 = undef,
   Optional[String[1]]                           $subnet_project         = undef,
   Optional[Boolean]                             $disable_lb             = undef,
@@ -160,6 +160,7 @@ plan pecdm::provision(
       'sensitive' => true, 'default' => 'puppetlabs'
     )
   }
+
   if $windows_node_count {
     if $windows_password {
       $_windows_password = Sensitive($windows_password)
@@ -167,6 +168,11 @@ plan pecdm::provision(
       $_windows_password = prompt('Input Windows Node password or accept default. [Pupp3tL@b5P0rtl@nd!]',
         'sensitive' => true, 'default' => 'Pupp3tL@b5P0rtl@nd!'
       )
+    }
+  } else {
+    $_windows_password = undef # prevents unknown variable errors when not provisioning Windows Agents
+    if $windows_password {
+      out::message('Windows node password reset to undef because no Windows Agents are to be provisioned')
     }
   }
 
@@ -229,9 +235,9 @@ plan pecdm::provision(
 
   if $write_inventory {
     run_plan('pecdm::utils::inventory_yaml', {
-      provider         => $provider,
-      ssh_ip_mode      => $ssh_ip_mode,
-      native_ssh       => $native_ssh,
+      provider    => $provider,
+      ssh_ip_mode => $ssh_ip_mode,
+      native_ssh  => $native_ssh,
     })
   }
 }
