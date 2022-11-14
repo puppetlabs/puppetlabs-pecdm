@@ -16,12 +16,26 @@
 #   granting access to instances over SSH
 #
 # @param node_count
-#   Number of agent nodes to provision and enroll into deployment for testing
+#   Number of Linux agent nodes to provision and enroll into deployment for testing
 #   and development
 #
 # @param instance_image
 #   The cloud image that is used for new instance provisioning, format differs
 #   depending on provider
+#
+# @param windows_node_count
+#   Number of Windows agent nodes to provision and enroll into deployment for testing
+#   and development
+#
+# @param windows_instance_image
+#   The cloud image that is used for new Windows instance provisioning, format differs
+#   depending on provider
+#
+# @param windows_user
+#   The adminstrative user account created on Windows nodes nodes allowing for WINRM connections
+#
+# @param windows_password
+#   The adminstrative user account password on Windows nodes nodes allowing for WINRM connections
 #
 # @param subnet
 #   Name or ID of an existing subnet to attach newly provisioned infrastructure
@@ -76,56 +90,73 @@
 #   net-ssh library
 #
 plan pecdm::subplans::provision(
-  Enum['xlarge', 'large', 'standard']           $architecture         = 'standard',
-  Enum['development', 'production', 'user']     $cluster_profile      = 'development',
-  Integer                                       $compiler_count       = 1,
-  Optional[String[1]]                           $ssh_pub_key_file     = undef,
-  Optional[Integer]                             $node_count           = undef,
-  Optional[Variant[String[1],Hash]]             $instance_image       = undef,
-  Optional[Variant[String[1],Array[String[1]]]] $subnet               = undef,
-  Optional[String[1]]                           $subnet_project       = undef,
-  Optional[Boolean]                             $disable_lb           = undef,
-  Enum['private', 'public']                     $ssh_ip_mode          = 'public',
-  Enum['private', 'public']                     $lb_ip_mode           = 'private',
-  Array                                         $firewall_allow       = [],
-  Hash                                          $extra_terraform_vars = {},
-  Boolean                                       $replica              = false,
-  Boolean                                       $native_ssh           = false,
+  Enum['xlarge', 'large', 'standard']           $architecture           = 'standard',
+  Enum['development', 'production', 'user']     $cluster_profile        = 'development',
+  Integer                                       $compiler_count         = 1,
+  Optional[String[1]]                           $ssh_pub_key_file       = undef,
+  Optional[Integer]                             $node_count             = undef,
+  Optional[Variant[String[1],Hash]]             $instance_image         = undef,
+  Optional[Integer]                             $windows_node_count     = undef,
+  Optional[Variant[String[1],Hash]]             $windows_instance_image = undef,
+  Optional[Sensitive[String[1]]]                $windows_password       = undef,
+  Optional[Variant[String[1],Array[String[1]]]] $subnet                 = undef,
+  Optional[String[1]]                           $subnet_project         = undef,
+  Optional[Boolean]                             $disable_lb             = undef,
+  Enum['private', 'public']                     $ssh_ip_mode            = 'public',
+  Enum['private', 'public']                     $lb_ip_mode             = 'private',
+  Array                                         $firewall_allow         = [],
+  Hash                                          $extra_terraform_vars   = {},
+  Boolean                                       $replica                = false,
+  Boolean                                       $native_ssh             = false,
   # The final three parameters depend on the value of $provider, to do magic
   Enum['google', 'aws', 'azure']                $provider,
-  String[1]                                     $project              = $provider ? { 'aws' => 'pecdm', default => undef },
-  String[1]                                     $ssh_user             = $provider ? { 'aws' => 'ec2-user', default => undef },
-  String[1]                                     $cloud_region         = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }
+  String[1]                                     $project                = $provider ? { 'aws' => 'pecdm', default => undef },
+  String[1]                                     $ssh_user               = $provider ? { 'aws' => 'ec2-user', default => undef },
+  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', 'aws' => undef, 'google' => undef },
+  String[1]                                     $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }
 ) {
-
   if $provider == 'google' {
-    $_instance_image = $instance_image
-
     if $subnet.is_a(Array) {
       fail_plan('Google subnet must be provided as a String, an Array of subnets is only applicable for AWS based deployments')
     }
     if $lb_ip_mode == 'public' {
       fail_plan('Setting lb_ip_mode parameter to public with the GCP provider is not currently supported due to lack of GCP provided DNS')
     }
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+      fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
+    }
+
+    $_instance_image         = $instance_image
+    $_windows_instance_image = undef # While provider doesn't support Windows Agent nodes, ensure this is always undef
   }
 
   if $provider == 'aws' {
-    $_instance_image = $instance_image
-
     if $subnet_project {
       fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
     }
+
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+      fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
+    }
+
+    $_instance_image         = $instance_image
+    $_windows_instance_image = undef # While provider doesn't support Windows Agent nodes, ensure this is always undef
   }
 
   if $provider == 'azure' {
+    if $subnet {
+      fail_plan('Azure provider does not currently support attachment to existing networks')
+    }
+
     if $instance_image.is_a(String) {
       $_instance_image = { 'instance_image' => $instance_image, 'image_plan' => '' }
     } else {
       $_instance_image = $instance_image
     }
-
-    if $subnet {
-      fail_plan('Azure provider does not currently support attachment to existing networks')
+    if $windows_instance_image.is_a(String) {
+      $_windows_instance_image = { 'windows_instance_image' => $windows_instance_image, 'image_plan' => '' }
+    } else {
+      $_windows_instance_image = $windows_instance_image
     }
   }
 
@@ -138,23 +169,27 @@ plan pecdm::subplans::provision(
 
   # Constructs a tfvars file to be used by Terraform
   $tfvars = epp('pecdm/tfvars.epp', {
-    project              => $project,
-    user                 => $ssh_user,
-    lb_ip_mode           => $lb_ip_mode,
-    ssh_key              => $ssh_pub_key_file,
-    region               => $cloud_region,
-    node_count           => $node_count,
-    instance_image       => $_instance_image,
-    subnet               => $subnet,
-    subnet_project       => $subnet_project,
-    firewall_allow       => $firewall_allow,
-    architecture         => $architecture,
-    cluster_profile      => $cluster_profile,
-    replica              => $replica,
-    compiler_count       => $compiler_count,
-    disable_lb           => $disable_lb,
-    provider             => $provider,
-    extra_terraform_vars => $extra_terraform_vars
+    project                => $project,
+    user                   => $ssh_user,
+    windows_user           => $windows_user,
+    lb_ip_mode             => $lb_ip_mode,
+    ssh_key                => $ssh_pub_key_file,
+    region                 => $cloud_region,
+    node_count             => $node_count,
+    instance_image         => $_instance_image,
+    windows_node_count     => $windows_node_count,
+    windows_instance_image => $_windows_instance_image,
+    windows_password       => $windows_password.unwrap,
+    subnet                 => $subnet,
+    subnet_project         => $subnet_project,
+    firewall_allow         => $firewall_allow,
+    architecture           => $architecture,
+    cluster_profile        => $cluster_profile,
+    replica                => $replica,
+    compiler_count         => $compiler_count,
+    disable_lb             => $disable_lb,
+    provider               => $provider,
+    extra_terraform_vars   => $extra_terraform_vars
   })
 
   out::message("Starting infrastructure provisioning for a ${architecture} deployment of Puppet Enterprise")
@@ -205,18 +240,33 @@ plan pecdm::subplans::provision(
     false => $_target_config
   }
 
+  $windows_target_config = {
+    'config' => {
+      'transport' => 'winrm',
+      'winrm'     => {
+        'user'            => $windows_user,
+        'password'        => $windows_password.unwrap,
+        'ssl'             => false,
+        'connect-timeout' => 30,
+      },
+    },
+  }
+
   # Generate an inventory of freshly provisioned nodes using the parameters that
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
   # different name and uri parameters to allow for the target's SSH address to
   # differ from the names used to configure Puppet on the internal interfaces
-  $inventory = ['server', 'psql', 'compiler', 'node'].reduce({}) |Hash $memo, String $i| {
-    $memo + { $i => resolve_references( {
+  $inventory = ['server', 'psql', 'compiler', 'node', 'windows_node'].reduce({}) |Hash $memo, String $i| {
+    $memo + { $i => resolve_references({
         '_plugin'        => 'terraform',
         'dir'            => $tf_dir,
         'resource_type'  => $provider ? {
           'google' => "google_compute_instance.${i}",
           'aws'    => "aws_instance.${i}",
-          'azure'  => "azurerm_linux_virtual_machine.${i}",
+          'azure'  => $i ? {
+            'windows_node' => "azurerm_windows_virtual_machine.${i}",
+            default        => "azurerm_linux_virtual_machine.${i}",
+          },
         },
         'target_mapping' => $provider ? {
           'google' => {
@@ -248,13 +298,18 @@ plan pecdm::subplans::provision(
   # Create Target objects from our previously generated inventory so that calls
   # to the get_target(s) function returns appropriate data
   $pecdm_targets = $inventory.map |$f, $v| { $v.map |$target| {
-    Target.new($target.merge($target_config))
-  } }.flatten
+    if $f == 'windows_node' {
+      Target.new($target.merge($windows_target_config))
+    } else {
+      Target.new($target.merge($target_config))
+    }
+  }}.flatten
 
   $results = {
-    'pe_inventory'          => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node') },
-    'agent_inventory'       => $inventory['node'],
-    'compiler_pool_address' => $tf_apply['pool']['value']
+    'pe_inventory'            => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node' and $type != 'windows_node') },
+    'agent_inventory'         => $inventory['node'],
+    'windows_agent_inventory' => $inventory['windows_node'],
+    'compiler_pool_address'   => $tf_apply['pool']['value']
   }
 
   out::message("Finished provisioning infrastructure for a ${architecture} deployment of Puppet Enterprise")
