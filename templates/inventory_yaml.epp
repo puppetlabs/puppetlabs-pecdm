@@ -121,7 +121,7 @@ groups:
           name: tags.internalDNS
           uri: <%= $uri_param %>
     <%- } -%>
-      - name: windows_agent_nodes
+  - name: windows_agent_nodes
     targets:
     <%- if $provider == 'google' { -%>
       - _plugin: terraform
