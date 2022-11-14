@@ -13,7 +13,7 @@ mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
 # Modules from Git
 mod 'puppetlabs-peadm',
     git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '1affd80d3829547670defd92f4863b3e61461369'
+    ref: '67bfcfa1f255a28f19ca79fc4d4e696203bc32bb'
 
 # External non-Puppet content
 #
