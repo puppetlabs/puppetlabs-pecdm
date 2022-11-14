@@ -209,7 +209,11 @@ plan pecdm::subplans::provision(
     run_plan('terraform::apply',
       dir           => $tf_dir,
       return_output => true,
-      var_file      => $tfvars_file
+      var_file      => $tfvars_file,
+      refresh_state => $provider ? {
+        'aws'   => true,
+        default => false,
+      }
     )
   }
 
@@ -277,7 +281,7 @@ plan pecdm::subplans::provision(
             }
           },
           'aws' => {
-            'name' => 'private_dns',
+            'name' => 'tags.internalDNS',
             'uri'  => $ssh_ip_mode ? {
               'private' => 'private_ip',
               default   => 'public_ip',
