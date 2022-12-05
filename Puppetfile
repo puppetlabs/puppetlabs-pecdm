@@ -15,7 +15,7 @@ mod 'puppetlabs-peadm',
     ref: '67bfcfa1f255a28f19ca79fc4d4e696203bc32bb'
 mod 'puppetlabs-terraform',
     git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
-    ref: '0fb771251821fdbe110ec8b8c1fcc892b1ff16c7'
+    ref: 'a57808f7477204681d27f6d7dee9b89bf714d9e7'
 
 # External non-Puppet content
 #
