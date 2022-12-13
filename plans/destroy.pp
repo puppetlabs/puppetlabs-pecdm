@@ -8,8 +8,8 @@
 #   be determined by provider
 #
 plan pecdm::destroy(
-  Enum['google', 'aws', 'azure']  $provider,
-  Optional[String[1]]             $cloud_region = undef
+  Enum['google', 'aws', 'azure']  $provider     = lookup('pecdm::provision::provider'),
+  Optional[String[1]]             $cloud_region = lookup('pecdm::provision::cloud_region', { 'default_value' => undef })
 ) {
 
   run_plan('pecdm::subplans::destroy', {

@@ -240,4 +240,39 @@ plan pecdm::provision(
       native_ssh  => $native_ssh,
     })
   }
+
+  $params = {
+    'pecdm::provision::architecture'           => $architecture,
+    'pecdm::provision::cluster_profile'        => $cluster_profile,
+    'pecdm::provision::download_mode'          => $download_mode,
+    'pecdm::provision::version'                => $version,
+    'pecdm::provision::compiler_count'         => $compiler_count,
+    'pecdm::provision::ssh_pub_key_file'       => $ssh_pub_key_file,
+    'pecdm::provision::console_password'       => $console_password,
+    'pecdm::provision::node_count'             => $node_count,
+    'pecdm::provision::instance_image'         => $instance_image,
+    'pecdm::provision::windows_node_count'     => $windows_node_count,
+    'pecdm::provision::windows_instance_image' => $windows_instance_image,
+    'pecdm::provision::windows_password'       => $windows_password,
+    'pecdm::provision::windows_user'           => $windows_user,
+    'pecdm::provision::subnet'                 => $subnet,
+    'pecdm::provision::subnet_project'         => $subnet_project,
+    'pecdm::provision::disable_lb'             => $disable_lb,
+    'pecdm::provision::ssh_ip_mode'            => $ssh_ip_mode,
+    'pecdm::provision::lb_ip_mode'             => $lb_ip_mode,
+    'pecdm::provision::firewall_allow'         => $firewall_allow,
+    'pecdm::provision::dns_alt_names'          => $dns_alt_names,
+    'pecdm::provision::extra_peadm_params'     => $extra_peadm_params,
+    'pecdm::provision::extra_terraform_vars'   => $extra_terraform_vars,
+    'pecdm::provision::replica'                => $replica,
+    'pecdm::provision::stage'                  => $stage,
+    'pecdm::provision::write_inventory'        => $write_inventory,
+    'pecdm::provision::native_ssh'             => $native_ssh,
+    'pecdm::provision::provider'               => $provider,
+    'pecdm::provision::project'                => $project,
+    'pecdm::provision::ssh_user'               => $ssh_user,
+    'pecdm::provision::cloud_region'           => $cloud_region
+  }
+
+  file::write('data/written.yaml', $params.filter |$i| { $i[1] != undef }.to_yaml)
 }

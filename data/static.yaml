@@ -1,0 +1,4 @@
+---
+
+pecdm::destroy::provider: "${lookup('pecdm::provision::provider')}"
+pecdm::destroy::cloud_region: "${lookup('pecdm::provision::cloud_region')}"

@@ -1,0 +1,11 @@
+---
+version: 5
+defaults:
+  datadir: data
+  data_hash: yaml_data
+
+plan_hierarchy:
+  - name: "Plan written"
+    path: "written.yaml"
+  - name: "Static data"
+    path: "static.yaml"
