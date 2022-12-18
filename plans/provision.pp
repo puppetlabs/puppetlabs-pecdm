@@ -202,6 +202,9 @@ plan pecdm::provision(
     extra_terraform_vars   => $extra_terraform_vars
   })
 
+  # So the results can be seen in verbose mode if $stage is set
+  out::verbose("pecdm::provision provisioned:\n\n${provisioned.to_json_pretty}\n")
+
   unless $stage {
     run_plan('pecdm::subplans::deploy', {
       inventory              => $provisioned['pe_inventory'],
