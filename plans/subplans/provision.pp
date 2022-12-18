@@ -211,7 +211,16 @@ plan pecdm::subplans::provision(
       return_output => true,
       var_file      => $tfvars_file,
       refresh_state => $provider ? {
-        'aws'   => true,
+        'aws'   => false,
+        default => false,
+      }
+    )
+    run_plan('terraform::apply',
+      dir           => $tf_dir,
+      return_output => true,
+      var_file      => $tfvars_file,
+      refresh_state => $provider ? {
+        'aws'   => false,
         default => false,
       }
     )
