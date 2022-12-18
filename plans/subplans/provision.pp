@@ -210,20 +210,17 @@ plan pecdm::subplans::provision(
       dir           => $tf_dir,
       return_output => true,
       var_file      => $tfvars_file,
-      refresh_state => $provider ? {
-        'aws'   => false,
-        default => false,
-      }
+      refresh_state => false,
     )
-    run_plan('terraform::apply',
-      dir           => $tf_dir,
-      return_output => true,
-      var_file      => $tfvars_file,
-      refresh_state => $provider ? {
-        'aws'   => false,
-        default => false,
-      }
-    )
+    # run the apply a second time on aws
+    if $provider == 'aws' {
+      run_plan('terraform::apply',
+        dir           => $tf_dir,
+        return_output => true,
+        var_file      => $tfvars_file,
+        refresh_state => false,
+      )
+    }
   }
 
   # A pretty basic target config that just ensures we'll SSH into linux hosts
