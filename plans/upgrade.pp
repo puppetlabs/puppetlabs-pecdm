@@ -1,7 +1,7 @@
 # @summary Upgrade a pecdm provisioned cluster
 #
 plan pecdm::upgrade(
-  Peadm::Pe_version                        $version            = '2021.7.1',
+  Peadm::Pe_version                        $version            = '2021.7.2',
   Boolean                                  $native_ssh         = false,
   Enum['private', 'public']                $ssh_ip_mode        = 'public',
   Optional[Enum['google', 'aws', 'azure']] $provider           = undef,
