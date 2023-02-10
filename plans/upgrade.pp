@@ -8,8 +8,7 @@ plan pecdm::upgrade(
   Hash                                     $extra_peadm_params = {},
   String[1]                                $ssh_user           = $provider ? { 'aws' => 'ec2-user', default => undef },
 ) {
-
-  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local'})
+  Target.new('name' => 'localhost', 'config' => { 'transport' => 'local' })
 
   if $provider {
     $_provider = $provider
@@ -24,7 +23,7 @@ plan pecdm::upgrade(
     }.peadm::flatten_compact()
 
     if $detected_provider.length > 1 {
-      fail_plan("Provider detection found two active providers, ${detected_provider.join(", ")}; to use the pecdm::upgrade plan, pass the $provider parameter to explicitly select one")
+      fail_plan("Provider detection found two active providers, ${detected_provider.join(', ')}; to use the pecdm::upgrade plan, pass the ${provider} parameter to explicitly select one")
     }
 
     $_provider = $detected_provider[0]
@@ -39,18 +38,18 @@ plan pecdm::upgrade(
         'user'           => $ssh_user,
         'host-key-check' => false,
         'run-as'         => 'root',
-        'tty'            => true
-      }
-    }
+        'tty'            => true,
+      },
+    },
   }
 
   $native_ssh_config = {
     'config' => {
       'ssh' => {
         'native-ssh'  => true,
-        'ssh-command' => 'ssh'
-      }
-    }
+        'ssh-command' => 'ssh',
+      },
+    },
   }
 
   $target_config = $native_ssh ? {
@@ -64,49 +63,49 @@ plan pecdm::upgrade(
   # differ from the names used to configure Puppet on the internal interfaces
   $inventory = ['server', 'psql', 'compiler'].reduce({}) |Hash $memo, String $i| {
     $memo + { $i => resolve_references({
-        '_plugin'        => 'terraform',
-        'dir'            => $tf_dir,
-        'resource_type'  => $_provider ? {
-          'google' => "google_compute_instance.${i}",
-          'aws'    => "aws_instance.${i}",
-          'azure'  => "azurerm_linux_virtual_machine.${i}",
-        },
-        'target_mapping' => $_provider ? {
-          'google' => {
-            'name'         => 'metadata.internalDNS',
-            'uri'          => $ssh_ip_mode ? {
-              'private' => 'network_interface.0.network_ip',
-              default   => 'network_interface.0.access_config.0.nat_ip',
+          '_plugin'        => 'terraform',
+          'dir'            => $tf_dir,
+          'resource_type'  => $_provider ? {
+            'google' => "google_compute_instance.${i}",
+            'aws'    => "aws_instance.${i}",
+            'azure'  => "azurerm_linux_virtual_machine.${i}",
+          },
+          'target_mapping' => $_provider ? {
+            'google' => {
+              'name'         => 'metadata.internalDNS',
+              'uri'          => $ssh_ip_mode ? {
+                'private' => 'network_interface.0.network_ip',
+                default   => 'network_interface.0.access_config.0.nat_ip',
+              },
+            },
+            'aws' => {
+              'name' => 'tags.internalDNS',
+              'uri'  => $ssh_ip_mode ? {
+                'private' => 'private_ip',
+                default   => 'public_ip',
+              },
+            },
+            'azure' => {
+              'name' => 'tags.internalDNS',
+              'uri'  => $ssh_ip_mode ? {
+                'private' => 'private_ip_address',
+                default   => 'public_ip_address',
+              },
             }
           },
-          'aws' => {
-            'name' => 'tags.internalDNS',
-            'uri'  => $ssh_ip_mode ? {
-              'private' => 'private_ip',
-              default   => 'public_ip',
-            }
-          },
-          'azure' => {
-            'name' => 'tags.internalDNS',
-            'uri'  => $ssh_ip_mode ? {
-              'private' => 'private_ip_address',
-              default   => 'public_ip_address',
-            }
-          }
-        }
       })
     }
   }
 
   $inventory.each |$k, $v| { $v.each |$target| {
-    Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
-  }}
+      Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
+  } }
 
   $peadm_configs = run_task('peadm::get_peadm_config', [
-    get_targets([
-      getvar('inventory.server.0.name'),
-      getvar('inventory.server.1.name')
-    ].peadm::flatten_compact)
+      get_targets([
+          getvar('inventory.server.0.name'),
+          getvar('inventory.server.1.name'),
+      ].peadm::flatten_compact)
   ])
 
   if ($peadm_configs.count == 1) or ($peadm_configs[0].value == $peadm_configs[1].value) {
@@ -122,7 +121,7 @@ plan pecdm::upgrade(
     'replica_postgresql_host' => getvar('current_config.params.replica_postgresql_host'),
     'compiler_hosts'          => getvar('current_config.params.compilers'),
     'compiler_pool_address'   => getvar('current_config.params.compiler_pool_address'),
-    'version'                 => $version
+    'version'                 => $version,
   }
 
   $peadm_upgrade_params = $params + $extra_peadm_params

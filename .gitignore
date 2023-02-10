@@ -24,11 +24,4 @@
 .DS_Store
 .project
 .envrc
-# List of files to ignore related to Bolt
-.modules/
-.plan_cache.json
-.resource_types/
-.task_cache.json
-.terraform/
-bolt-debug.log
-.rerun.json
+/spec/fixtures/litmus_inventory.yaml
