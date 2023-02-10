@@ -225,6 +225,8 @@ plan pecdm::provision(
       $windows_agent_targets = get_targets(getvar('provisioned.windows_agent_inventory').map |$target| {
           $target['name']
       }.flatten())
+    } else {
+      $windows_agent_targets = []
     }
     if $node_count or $windows_node_count {
       run_plan('pecdm::utils::deploy_agents', $agent_targets + $windows_agent_targets, {
