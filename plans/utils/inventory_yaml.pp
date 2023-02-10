@@ -15,12 +15,11 @@ plan pecdm::utils::inventory_yaml(
   Enum['private', 'public']      $ssh_ip_mode,
   Boolean                        $native_ssh = false,
 ) {
-
   out::message("Writing inventory.yaml for ${provider}")
 
   file::write('inventory.yaml', epp('pecdm/inventory_yaml.epp', {
-    provider    => $provider,
-    ssh_ip_mode => $ssh_ip_mode,
-    native_ssh  => $native_ssh
+        provider    => $provider,
+        ssh_ip_mode => $ssh_ip_mode,
+        native_ssh  => $native_ssh
   }))
 }

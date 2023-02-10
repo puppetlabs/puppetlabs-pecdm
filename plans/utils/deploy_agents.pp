@@ -12,7 +12,6 @@ plan pecdm::utils::deploy_agents(
   String     $primary_host,
   String     $compiler_pool_address = $primary_host,
 ) {
-
   out::message('Enrolling agent nodes into new Puppet Enterprise deployment')
 
   parallelize($targets) |$target| {

@@ -24,7 +24,9 @@
 .DS_Store
 .project
 .envrc
+/spec/fixtures/litmus_inventory.yaml
 /appveyor.yml
+/.editorconfig
 /.fixtures.yml
 /Gemfile
 /.gitattributes
