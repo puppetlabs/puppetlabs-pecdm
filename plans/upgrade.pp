@@ -104,7 +104,7 @@ plan pecdm::upgrade(
   $peadm_configs = run_task('peadm::get_peadm_config', [
       get_targets([
           getvar('inventory.server.0.name'),
-          getvar('inventory.server.1.name'),,
+          getvar('inventory.server.1.name'),
       ].peadm::flatten_compact)
   ])
 
