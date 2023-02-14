@@ -112,8 +112,8 @@ plan pecdm::subplans::provision(
   Enum['google', 'aws', 'azure']                $provider,
   String[1]                                     $project                = $provider ? { 'aws' => 'pecdm', default => undef },
   String[1]                                     $ssh_user               = $provider ? { 'aws' => 'ec2-user', default => undef },
-  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', 'aws' => undef, 'google' => undef },
-  String[1]                                     $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' }
+  Optional[String[1]]                           $windows_user           = $provider ? { 'azure' => 'windows', 'aws' => undef, 'google' => undef }, # lint:ignore:140chars
+  String[1]                                     $cloud_region           = $provider ? { 'azure' => 'westus2', 'aws' => 'us-west-2', default => 'us-west1' } # lint:ignore:140chars
 ) {
   if $provider == 'google' {
     if $subnet.is_a(Array) {
@@ -122,7 +122,7 @@ plan pecdm::subplans::provision(
     if $lb_ip_mode == 'public' {
       fail_plan('Setting lb_ip_mode parameter to public with the GCP provider is not currently supported due to lack of GCP provided DNS')
     }
-    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] { # lint:ignore:140chars
       fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
     }
 
@@ -135,7 +135,7 @@ plan pecdm::subplans::provision(
       fail_plan('Setting subnet_project parameter is only applicable for Google deployments using a subnet shared from another project')
     }
 
-    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] {
+    if false in [$windows_instance_image.is_a(Undef), $windows_node_count.is_a(Undef), $windows_password.is_a(Undef), $windows_user.is_a(Undef)] { # lint:ignore:140chars
       fail_plan("Provider ${provider} does not support provisioning Windows Agent nodes")
     }
 
@@ -310,7 +310,7 @@ plan pecdm::subplans::provision(
   } }.flatten
 
   $results = {
-    'pe_inventory'            => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node' and $type != 'windows_node') },
+    'pe_inventory'            => $inventory.filter |$type, $values| { ($values.length > 0) and ($type != 'node' and $type != 'windows_node') }, # lint:ignore:140chars
     'agent_inventory'         => $inventory['node'],
     'windows_agent_inventory' => $inventory['windows_node'],
     'compiler_pool_address'   => $tf_apply['pool']['value'],

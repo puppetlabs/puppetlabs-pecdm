@@ -23,7 +23,7 @@ plan pecdm::upgrade(
     }.peadm::flatten_compact()
 
     if $detected_provider.length > 1 {
-      fail_plan("Provider detection found two active providers, ${detected_provider.join(', ')}; to use the pecdm::upgrade plan, pass the ${provider} parameter to explicitly select one")
+      fail_plan("Provider detection found two active providers, ${detected_provider.join(', ')}; to use the pecdm::upgrade plan, pass the ${provider} parameter to explicitly select one") # lint:ignore:140chars
     }
 
     $_provider = $detected_provider[0]
