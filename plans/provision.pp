@@ -123,7 +123,7 @@ plan pecdm::provision(
   String[1]                                     $version                = '2019.8.10',
   Integer                                       $compiler_count         = 1,
   Optional[String[1]]                           $ssh_pub_key_file       = undef,
-  Optional[String[1]]                           $console_password       = undef,  # lint:ignore:140chars Due to a bug with how bolt handles Optional Sensative this can not be currently use
+  Optional[String[1]]                           $console_password       = undef,  # lint:ignore:140chars Due to a bug with how bolt handles Optional Sensitive this can not be currently use
   Optional[Integer]                             $node_count             = undef,
   Optional[Variant[String[1],Hash]]             $instance_image         = undef,
   Optional[Integer]                             $windows_node_count     = undef,
