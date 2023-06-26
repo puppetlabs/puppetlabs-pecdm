@@ -203,7 +203,7 @@ plan pecdm::provision(
   })
 
   # Show provisioning results in verbose mode
-  out::verbose("pecdm::provision provisioned:\n\n${provisioned.to_json_pretty}\n")
+  out::verbose("pecdm::provision provisioned:\n\n${provisioned.stdlib::to_json_pretty}\n")
 
   unless $stage {
     run_plan('pecdm::subplans::deploy', {
