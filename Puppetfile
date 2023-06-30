@@ -1,18 +1,16 @@
 forge 'https://forge.puppet.com'
 
 # Modules from the Puppet Forge
-mod 'puppetlabs-stdlib', '8.5.0'
+mod 'puppetlabs-stdlib', '8.6.0'
 mod 'puppetlabs-apply_helpers', '0.3.0'
 mod 'puppetlabs-bolt_shim', '0.4.0'
-mod 'puppetlabs-inifile', '5.4.0'
+mod 'puppetlabs-inifile', '6.1.0'
 mod 'WhatsARanjit-node_manager', '0.7.5'
 mod 'puppetlabs-ruby_task_helper', '0.6.1'
 mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
+mod 'puppetlabs-peadm', '3.13.1'
 
 # Modules from Git
-mod 'puppetlabs-peadm',
-    git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '67bfcfa1f255a28f19ca79fc4d4e696203bc32bb'
 mod 'puppetlabs-terraform',
     git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
     ref: 'df32b4993b8e6e30fa57feb0e689b03fd0e1dc9d'
