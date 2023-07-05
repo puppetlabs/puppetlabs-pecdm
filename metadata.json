@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "source": "https://github.com/puppetlabs/puppetlabs-pecdm",
   "dependencies": [
-   {
+    {
       "name": "puppetlabs-stdlib",
       "version_requirement": ">= 8.0.0 < 10.0.0"
     }
@@ -55,7 +55,7 @@
       "version_requirement": ">= 6.0.0 < 9.0.0"
     }
   ],
-  "pdk-version": "3.0.0.pre (1)",
+  "pdk-version": "3.0.0",
   "template-url": "pdk-default#main",
-  "template-ref": "heads/main-0-g9675180"
+  "template-ref": "tags/3.0.0-0-g056e50d"
 }
