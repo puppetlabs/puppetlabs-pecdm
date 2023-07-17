@@ -62,7 +62,7 @@ plan pecdm::subplans::deploy(
 
   # TODO: make this print only when user specifies --verbose
   $peadm_install_params = $params + $extra_peadm_params
-  out::verbose("peadm::install params:\n\n${peadm_install_params.to_json_pretty}\n")
+  out::verbose("peadm::install params:\n\n${peadm_install_params.stdlib::to_json_pretty}\n")
 
   wait_until_available(get_targets($peadm_target_list), wait_time => 300)
 

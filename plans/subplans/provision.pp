@@ -303,9 +303,9 @@ plan pecdm::subplans::provision(
   # to the get_target(s) function returns appropriate data
   $pecdm_targets = $inventory.map |$f, $v| { $v.map |$target| {
       if $f == 'windows_node' {
-        Target.new($target.merge($windows_target_config))
+        Target.new($target.stdlib::merge($windows_target_config))
       } else {
-        Target.new($target.merge($target_config))
+        Target.new($target.stdlib::merge($target_config))
       }
   } }.flatten
 
