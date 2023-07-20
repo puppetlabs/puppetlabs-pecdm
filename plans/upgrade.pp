@@ -8,7 +8,10 @@ plan pecdm::upgrade(
   Hash                                     $extra_peadm_params = {},
   String[1]                                $ssh_user           = $provider ? { 'aws' => 'ec2-user', default => undef },
 ) {
+  log::trace('.')
   Target.new('name' => 'localhost', 'config' => { 'transport' => 'local' })
+
+  log::trace('0')
 
   if $provider {
     $_provider = $provider
@@ -30,6 +33,7 @@ plan pecdm::upgrade(
     $tf_dir = ".terraform/${_provider}_pe_arch"
   }
 
+  out::message('1')
   # A pretty basic target config that just ensures we'll SSH into linux hosts
   # with a specific user and properly escalate to the root user
   $_target_config = {
@@ -42,6 +46,7 @@ plan pecdm::upgrade(
       },
     },
   }
+  out::message('2')
 
   $native_ssh_config = {
     'config' => {
@@ -51,11 +56,13 @@ plan pecdm::upgrade(
       },
     },
   }
+  out::message('3')
 
   $target_config = $native_ssh ? {
     true  => deep_merge($_target_config, $native_ssh_config),
     false => $_target_config
   }
+  out::message('4')
 
   # Generate an inventory of freshly provisioned nodes using the parameters that
   # are appropriate based on which cloud provider we've chosen to use. Utilizes
@@ -96,10 +103,12 @@ plan pecdm::upgrade(
       })
     }
   }
+  out::message('5')
 
   $inventory.each |$k, $v| { $v.each |$target| {
       Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   } }
+  out::message('6')
 
   $peadm_configs = run_task('peadm::get_peadm_config', [
       get_targets([
@@ -107,12 +116,14 @@ plan pecdm::upgrade(
           getvar('inventory.server.1.name'),
       ].peadm::flatten_compact)
   ])
+  out::message('7')
 
   if ($peadm_configs.count == 1) or ($peadm_configs[0].value == $peadm_configs[1].value) {
     $current_config = $peadm_configs[0].value
   } else {
     fail_plan('Collected PEADM configs do not match, primary and replica must report equal configurations to upgrade')
   }
+  out::message('8')
 
   $params = {
     'primary_host'            => getvar('current_config.params.primary_host'),
@@ -123,6 +134,7 @@ plan pecdm::upgrade(
     'compiler_pool_address'   => getvar('current_config.params.compiler_pool_address'),
     'version'                 => $version,
   }
+  log::trace('9')
 
   $peadm_upgrade_params = $params + $extra_peadm_params
 
@@ -130,4 +142,5 @@ plan pecdm::upgrade(
 
   # Once all the infrastructure data has been collected, peadm takes over
   run_plan('peadm::upgrade', $peadm_upgrade_params)
+  log::trace('10')
 }
