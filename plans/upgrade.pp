@@ -51,7 +51,6 @@ plan pecdm::upgrade(
       },
     },
   }
-  out::message('3')
 
   $target_config = $native_ssh ? {
     true  => deep_merge($_target_config, $native_ssh_config),
@@ -101,7 +100,6 @@ plan pecdm::upgrade(
   $inventory.each |$k, $v| { $v.each |$target| {
       Target.new($target.merge($target_config)).add_to_group('peadm_nodes')
   } }
-  out::message('6')
 
   $peadm_configs = run_task('peadm::get_peadm_config', [
       get_targets([
