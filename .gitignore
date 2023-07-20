@@ -25,3 +25,5 @@
 .project
 .envrc
 /spec/fixtures/litmus_inventory.yaml
+.modules
+.resource_types
