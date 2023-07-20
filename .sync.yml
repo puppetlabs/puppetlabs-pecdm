@@ -2,3 +2,8 @@
 .gitignore:
   required:
     - '---/inventory.yaml'
+Gemfile:
+  required:
+    ':development':
+      - gem: 'bolt'
+        version: '>= 3.10.0'

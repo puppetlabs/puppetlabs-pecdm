@@ -3,4 +3,8 @@
 ---
 fixtures:
   forge_modules:
-#     stdlib: "puppetlabs/stdlib"
+    stdlib: "puppetlabs/stdlib"
+    peadm: "puppetlabs/peadm"
+    terraform: "puppetlabs/terraform"
+    ruby_task_helper: "puppetlabs/ruby_task_helper"
+    ruby_plugin_helper: "puppetlabs/ruby_plugin_helper"
