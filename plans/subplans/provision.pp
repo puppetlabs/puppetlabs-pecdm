@@ -281,7 +281,7 @@ plan pecdm::subplans::provision(
               },
             },
             'aws' => {
-              'name' => 'tags.internalDNS',
+              'name' => 'private_dns',
               'uri'  => $ssh_ip_mode ? {
                 'private' => 'private_ip',
                 default   => 'public_ip',
