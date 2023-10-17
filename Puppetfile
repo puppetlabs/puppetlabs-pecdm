@@ -11,7 +11,7 @@ mod 'puppetlabs-peadm', '3.15.0'
 # mod 'puppetlabs-terraform', '0.7.0'
 mod 'puppetlabs-terraform',
   git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
-  ref: 'ab8700857d59dc8099fd73c53e2d31332450818f'
+  ref: 'ce7b0070e7d7ec3b683df7dffb7fce745eca06e6'
 
 # External non-Puppet content
 #
@@ -30,7 +30,7 @@ mod 'terraform-google_pe_arch',
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          'e3f9d5a65631373df061888f3aa8dec532461cf6',
+    ref:          'e5a731c727e73e50d95020a0f2913f86f4ec9c1c',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',
