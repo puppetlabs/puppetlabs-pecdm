@@ -1,20 +1,17 @@
 forge 'https://forge.puppet.com'
 
-mod 'puppetlabs-stdlib', '9.2.0'
+mod 'puppetlabs-stdlib', '9.4.0'
 mod 'puppetlabs-apply_helpers', '0.3.0'
 mod 'puppetlabs-bolt_shim', '0.4.0'
 mod 'puppetlabs-inifile', '6.1.0'
 mod 'WhatsARanjit-node_manager', '0.8.0'
 mod 'puppetlabs-ruby_task_helper', '0.6.1'
 mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
-
-# Modules from Git
-mod 'puppetlabs-peadm',
-    git: 'https://github.com/puppetlabs/puppetlabs-peadm.git',
-    ref: '97ec11b4ef0e25c55b6ebb677e1eb06f70766b66'
+mod 'puppetlabs-peadm', '3.15.0'
+# mod 'puppetlabs-terraform', '0.7.0'
 mod 'puppetlabs-terraform',
     git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
-    ref: 'df32b4993b8e6e30fa57feb0e689b03fd0e1dc9d'
+    ref: 'ce7b0070e7d7ec3b683df7dffb7fce745eca06e6'
 
 # External non-Puppet content
 #
@@ -33,7 +30,7 @@ mod 'terraform-google_pe_arch',
 
 mod 'terraform-aws_pe_arch',
     git:          'https://github.com/puppetlabs/terraform-aws-pe_arch.git',
-    ref:          'e3f9d5a65631373df061888f3aa8dec532461cf6',
+    ref:          'e5a731c727e73e50d95020a0f2913f86f4ec9c1c',
     install_path: '.terraform'
 
 mod 'terraform-azure_pe_arch',
