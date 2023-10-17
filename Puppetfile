@@ -10,8 +10,8 @@ mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
 mod 'puppetlabs-peadm', '3.15.0'
 # mod 'puppetlabs-terraform', '0.7.0'
 mod 'puppetlabs-terraform',
-  git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
-  ref: 'ce7b0070e7d7ec3b683df7dffb7fce745eca06e6'
+    git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
+    ref: 'ce7b0070e7d7ec3b683df7dffb7fce745eca06e6'
 
 # External non-Puppet content
 #
