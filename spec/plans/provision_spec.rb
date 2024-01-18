@@ -5,7 +5,7 @@ describe 'pecdm::provision' do
 
   params = {
     'provider' => 'aws',
-    'console_password' => 'puppetlabs',
+    'console_password' => 'puppetLabs123!',
   }
 
   it 'provision plan succeeds' do

@@ -156,8 +156,8 @@ plan pecdm::provision(
   if $console_password {
     $_console_password = $console_password
   } else {
-    $_console_password = prompt('Input Puppet Enterprise console password now or accept default. [puppetlabs]',
-      'sensitive' => true, 'default' => 'puppetlabs'
+    $_console_password = prompt('Input Puppet Enterprise console password now or accept default. [puppetLabs123!]',
+      'sensitive' => true, 'default' => 'puppetLabs123!'
     )
   }
 
