@@ -7,7 +7,7 @@ mod 'puppetlabs-inifile', '6.1.0'
 mod 'WhatsARanjit-node_manager', '0.8.0'
 mod 'puppetlabs-ruby_task_helper', '0.6.1'
 mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
-mod 'puppetlabs-peadm', '3.15.0'
+mod 'puppetlabs-peadm', '3.19.0'
 # mod 'puppetlabs-terraform', '0.7.0'
 mod 'puppetlabs-terraform',
     git: 'https://github.com/puppetlabs/puppetlabs-terraform.git',
